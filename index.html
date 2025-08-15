@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔍 Verificador de Notícias - Detecte Fake News</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1><i class="fas fa-search"></i> Verificador de Notícias</h1>
+            <p>Detecte fake news com inteligência artificial</p>
+        </div>
+        
+        <div class="content">
+            <div class="input-section">
+                <div class="input-group">
+                    <label for="newsText">
+                        <i class="fas fa-newspaper"></i> Texto da Notícia
+                    </label>
+                    <textarea 
+                        id="newsText" 
+                        placeholder="Cole aqui o texto completo da notícia que deseja verificar..."
+                    ></textarea>
+                </div>
+                
+                <div class="input-group">
+                    <label for="newsUrl">
+                        <i class="fas fa-link"></i> URL da Notícia (opcional)
+                    </label>
+                    <input 
+                        type="url" 
+                        id="newsUrl" 
+                        placeholder="https://exemplo.com/noticia"
+                    >
+                </div>
+                
+                <button class="verify-btn" onclick="verifyNews()">
+                    <i class="fas fa-shield-alt"></i> Verificar Notícia
+                </button>
+            </div>
+            
+            <div class="loading" id="loading">
+                <i class="fas fa-spinner fa-spin"></i> Analisando notícia...
+            </div>
+            
+            <div id="result"></div>
+        </div>
+        
+        <div class="footer">
+            <p>
+                <i class="fas fa-info-circle"></i> 
+                Esta ferramenta usa análise de padrões para detectar possíveis fake news. 
+                Sempre verifique informações em múltiplas fontes confiáveis.
+            </p>
+            <p class="tech-info">
+                Desenvolvido com HTML, CSS e JavaScript | 
+                <a href="https://github.com" target="_blank">
+                    <i class="fab fa-github"></i> Código no GitHub
+                </a>
+            </p>
+        </div>
+    </div>
+
+    <script src="analyzer.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
