@@ -5,20 +5,45 @@
 
 class NewsAnalyzer {
     constructor() {
+        // Padrões suspeitos com diferentes pesos
         this.suspiciousPatterns = [
-            /\b(URGENTE|BOMBA|EXCLUSIVO)\b/gi,
-            /\b(MÍDIA NÃO MOSTRA|IMPRENSA ESCONDE)\b/gi,
-            /\b(COMPARTILHE ANTES QUE APAGUEM)\b/gi,
-            /\b(VERDADE QUE NINGUÉM CONTA)\b/gi,
-            /!!!+/g,
-            /[A-Z]{10,}/g
+            { pattern: /\b(URGENTE|BOMBA|EXCLUSIVO)\b/gi, weight: 0.15, name: "Linguagem sensacionalista" },
+            { pattern: /\b(MÍDIA NÃO MOSTRA|IMPRENSA ESCONDE|MÍDIA MAINSTREAM)\b/gi, weight: 0.20, name: "Desconfiança da mídia" },
+            { pattern: /\b(COMPARTILHE ANTES QUE APAGUEM|DIVULGUE|ESPALHE)\b/gi, weight: 0.18, name: "Apelo ao compartilhamento" },
+            { pattern: /\b(VERDADE QUE NINGUÉM CONTA|SEGREDO|CONSPIRAÇÃO)\b/gi, weight: 0.17, name: "Teoria conspiratória" },
+            { pattern: /!!!+/g, weight: 0.05, name: "Pontuação excessiva" },
+            { pattern: /[A-Z]{15,}/g, weight: 0.12, name: "Texto em maiúsculas" },
+            { pattern: /\b(FAKE|MENTIRA|ENGANAÇÃO|FARSA)\b/gi, weight: 0.10, name: "Acusações diretas" },
+            { pattern: /\b(GOVERNO ESCONDE|ELITE|ILLUMINATI|NOVA ORDEM)\b/gi, weight: 0.25, name: "Teoria conspiratória avançada" }
         ];
-        
-        this.credibleDomains = [
-            'g1.globo.com', 'folha.uol.com.br', 'estadao.com.br',
-            'uol.com.br', 'bbc.com', 'reuters.com', 'agenciabrasil.ebc.com.br',
-            'cnn.com.br', 'band.uol.com.br', 'r7.com', 'oglobo.globo.com',
-            'veja.abril.com.br', 'exame.com', 'valor.globo.com'
+
+        // Domínios com diferentes níveis de credibilidade
+        this.credibleDomains = {
+            // Muito confiáveis (boost +0.25)
+            'highly_credible': [
+                'bbc.com', 'reuters.com', 'ap.org', 'agenciabrasil.ebc.com.br',
+                'folha.uol.com.br', 'estadao.com.br'
+            ],
+            // Confiáveis (boost +0.15)
+            'credible': [
+                'g1.globo.com', 'uol.com.br', 'cnn.com.br', 'band.uol.com.br',
+                'r7.com', 'oglobo.globo.com', 'veja.abril.com.br', 'exame.com',
+                'valor.globo.com', 'cartacapital.com.br', 'istoedinheiro.com.br'
+            ],
+            // Moderadamente confiáveis (boost +0.08)
+            'moderate': [
+                'metropoles.com', 'poder360.com.br', 'conjur.com.br',
+                'gazetadopovo.com.br', 'correiobraziliense.com.br'
+            ]
+        };
+
+        // Palavras que indicam credibilidade
+        this.credibilityIndicators = [
+            { pattern: /\b(segundo|de acordo com|conforme|dados mostram)\b/gi, weight: 0.08, name: "Citação de fontes" },
+            { pattern: /\b(pesquisa|estudo|relatório|levantamento)\b/gi, weight: 0.06, name: "Referência a estudos" },
+            { pattern: /\b(especialista|professor|doutor|pesquisador)\b/gi, weight: 0.07, name: "Citação de especialistas" },
+            { pattern: /\b(\d{1,2}\/\d{1,2}\/\d{4}|\d{1,2} de \w+ de \d{4})\b/gi, weight: 0.04, name: "Data específica" },
+            { pattern: /\b(ministério|secretaria|instituto|universidade)\b/gi, weight: 0.05, name: "Instituições oficiais" }
         ];
     }
 
@@ -33,13 +58,39 @@ class NewsAnalyzer {
             languageAnalysis: {}
         };
 
-        // Verifica padrões suspeitos
-        this.suspiciousPatterns.forEach(pattern => {
-            const matches = text.match(pattern);
+        // Verifica padrões suspeitos com pesos
+        let suspiciousScore = 0;
+        this.suspiciousPatterns.forEach(item => {
+            const matches = text.match(item.pattern);
             if (matches) {
-                analysis.suspiciousPatternsFound.push(...matches);
+                analysis.suspiciousPatternsFound.push({
+                    matches: matches,
+                    type: item.name,
+                    weight: item.weight,
+                    count: matches.length
+                });
+                suspiciousScore += item.weight * Math.min(matches.length, 3); // Máximo 3x o peso
             }
         });
+
+        // Verifica indicadores de credibilidade
+        let credibilityScore = 0;
+        analysis.credibilityIndicators = [];
+        this.credibilityIndicators.forEach(item => {
+            const matches = text.match(item.pattern);
+            if (matches) {
+                analysis.credibilityIndicators.push({
+                    matches: matches,
+                    type: item.name,
+                    weight: item.weight,
+                    count: matches.length
+                });
+                credibilityScore += item.weight * Math.min(matches.length, 2);
+            }
+        });
+
+        analysis.suspiciousScore = Math.min(suspiciousScore, 1.0);
+        analysis.credibilityScore = Math.min(credibilityScore, 0.5);
 
         // Análise de linguagem
         analysis.languageAnalysis = {
@@ -66,9 +117,26 @@ class NewsAnalyzer {
                 domain = domain.substring(4);
             }
 
+            // Determina o nível de credibilidade do domínio
+            let credibilityLevel = 'unknown';
+            let credibilityBoost = 0;
+
+            if (this.credibleDomains.highly_credible.includes(domain)) {
+                credibilityLevel = 'highly_credible';
+                credibilityBoost = 0.25;
+            } else if (this.credibleDomains.credible.includes(domain)) {
+                credibilityLevel = 'credible';
+                credibilityBoost = 0.15;
+            } else if (this.credibleDomains.moderate.includes(domain)) {
+                credibilityLevel = 'moderate';
+                credibilityBoost = 0.08;
+            }
+
             const analysis = {
                 domain: domain,
-                isCredibleSource: this.credibleDomains.includes(domain),
+                isCredibleSource: credibilityLevel !== 'unknown',
+                credibilityLevel: credibilityLevel,
+                credibilityBoost: credibilityBoost,
                 httpsEnabled: urlObj.protocol === 'https:',
                 extractionNote: "Extração de conteúdo não disponível no frontend"
             };
@@ -80,39 +148,69 @@ class NewsAnalyzer {
     }
 
     calculateCredibilityScore(textAnalysis, urlAnalysis = null) {
-        let score = 0.5; // Score base neutro
+        let score = 0.6; // Score base ligeiramente positivo
 
-        // Penaliza padrões suspeitos no texto
-        if (textAnalysis.suspiciousPatternsFound && textAnalysis.suspiciousPatternsFound.length > 0) {
-            const penalty = textAnalysis.suspiciousPatternsFound.length * 0.1;
-            score -= Math.min(penalty, 0.3); // Máximo de 30% de penalidade
+        // Aplica penalidades por padrões suspeitos (com pesos específicos)
+        if (textAnalysis.suspiciousScore) {
+            score -= textAnalysis.suspiciousScore;
         }
 
-        // Análise de linguagem
+        // Aplica bônus por indicadores de credibilidade
+        if (textAnalysis.credibilityScore) {
+            score += textAnalysis.credibilityScore;
+        }
+
+        // Análise de linguagem mais detalhada
         const langAnalysis = textAnalysis.languageAnalysis || {};
-        
-        // Penaliza excesso de pontuação
-        if (langAnalysis.exclamationCount > 3) {
-            score -= 0.1;
-        }
 
-        // Penaliza excesso de maiúsculas
-        if (langAnalysis.capsRatio > 0.3) {
+        // Penaliza excesso de pontuação (graduado)
+        const exclamationRatio = langAnalysis.exclamationCount / Math.max(textAnalysis.wordCount || 100, 1) * 100;
+        if (exclamationRatio > 5) {
             score -= 0.15;
+        } else if (exclamationRatio > 2) {
+            score -= 0.08;
         }
 
-        // Bonifica se a fonte é confiável
-        if (urlAnalysis && urlAnalysis.isCredibleSource) {
-            score += 0.2;
+        // Penaliza excesso de maiúsculas (graduado)
+        if (langAnalysis.capsRatio > 0.4) {
+            score -= 0.20;
+        } else if (langAnalysis.capsRatio > 0.25) {
+            score -= 0.12;
+        } else if (langAnalysis.capsRatio > 0.15) {
+            score -= 0.06;
         }
 
-        // Bonifica HTTPS
+        // Analisa comprimento das frases
+        if (langAnalysis.avgSentenceLength) {
+            if (langAnalysis.avgSentenceLength < 5) {
+                score -= 0.08; // Frases muito curtas podem ser suspeitas
+            } else if (langAnalysis.avgSentenceLength > 8 && langAnalysis.avgSentenceLength < 25) {
+                score += 0.05; // Frases bem estruturadas
+            }
+        }
+
+        // Bônus por fonte confiável (com níveis)
+        if (urlAnalysis && urlAnalysis.credibilityBoost) {
+            score += urlAnalysis.credibilityBoost;
+        }
+
+        // Pequeno bônus por HTTPS
         if (urlAnalysis && urlAnalysis.httpsEnabled) {
+            score += 0.03;
+        }
+
+        // Penaliza textos muito curtos (podem ser clickbait)
+        if (textAnalysis.wordCount && textAnalysis.wordCount < 20) {
+            score -= 0.10;
+        }
+
+        // Bônus para textos com tamanho adequado
+        if (textAnalysis.wordCount && textAnalysis.wordCount > 50 && textAnalysis.wordCount < 500) {
             score += 0.05;
         }
 
-        // Garante que o score está entre 0 e 1
-        return Math.max(0.0, Math.min(1.0, score));
+        // Garante que o score está entre 0 e 1, com mais granularidade
+        return Math.max(0.0, Math.min(1.0, Math.round(score * 100) / 100));
     }
 
     verifyNews(text = null, url = null) {
@@ -174,40 +272,79 @@ class NewsAnalyzer {
             recommendation: ""
         };
 
-        // Identifica problemas principais
+        // Identifica problemas principais (mais específicos)
         if (textAnalysis.suspiciousPatternsFound && textAnalysis.suspiciousPatternsFound.length > 0) {
-            summary.mainIssues.push(`🚨 Linguagem sensacionalista detectada (${textAnalysis.suspiciousPatternsFound.length} padrões)`);
+            textAnalysis.suspiciousPatternsFound.forEach(item => {
+                if (item.count > 0) {
+                    summary.mainIssues.push(`🚨 ${item.type} (${item.count}x)`);
+                }
+            });
         }
 
         const langAnalysis = textAnalysis.languageAnalysis || {};
-        if (langAnalysis.exclamationCount > 3) {
+        const exclamationRatio = langAnalysis.exclamationCount / Math.max(textAnalysis.wordCount || 100, 1) * 100;
+
+        if (exclamationRatio > 5) {
             summary.mainIssues.push("⚠️ Uso excessivo de pontuação (!)");
         }
 
-        if (langAnalysis.capsRatio > 0.3) {
+        if (langAnalysis.capsRatio > 0.4) {
             summary.mainIssues.push("⚠️ Texto com muitas letras maiúsculas");
+        } else if (langAnalysis.capsRatio > 0.25) {
+            summary.mainIssues.push("⚠️ Uso moderado de maiúsculas");
         }
 
-        // Identifica pontos positivos
+        if (textAnalysis.wordCount && textAnalysis.wordCount < 20) {
+            summary.mainIssues.push("⚠️ Texto muito curto (possível clickbait)");
+        }
+
+        // Identifica pontos positivos (mais detalhados)
         if (urlAnalysis && urlAnalysis.isCredibleSource) {
-            summary.positivePoints.push(`✅ Fonte confiável: ${urlAnalysis.domain || 'N/A'}`);
+            const levelText = {
+                'highly_credible': 'altamente confiável',
+                'credible': 'confiável',
+                'moderate': 'moderadamente confiável'
+            }[urlAnalysis.credibilityLevel] || 'confiável';
+            summary.positivePoints.push(`✅ Fonte ${levelText}: ${urlAnalysis.domain || 'N/A'}`);
         }
 
         if (urlAnalysis && urlAnalysis.httpsEnabled) {
             summary.positivePoints.push("✅ Site com conexão segura (HTTPS)");
         }
 
+        if (textAnalysis.credibilityIndicators && textAnalysis.credibilityIndicators.length > 0) {
+            textAnalysis.credibilityIndicators.forEach(item => {
+                if (item.count > 0) {
+                    summary.positivePoints.push(`✅ ${item.type} (${item.count}x)`);
+                }
+            });
+        }
+
         if (!textAnalysis.suspiciousPatternsFound || textAnalysis.suspiciousPatternsFound.length === 0) {
             summary.positivePoints.push("✅ Linguagem neutra e objetiva");
         }
 
-        // Recomendação
-        if (result.credibilityScore >= 0.7) {
-            summary.recommendation = "Esta notícia parece confiável, mas sempre verifique outras fontes.";
-        } else if (result.credibilityScore >= 0.4) {
-            summary.recommendation = "Notícia com credibilidade moderada. Recomenda-se verificar em outras fontes.";
+        if (langAnalysis.avgSentenceLength > 8 && langAnalysis.avgSentenceLength < 25) {
+            summary.positivePoints.push("✅ Estrutura textual adequada");
+        }
+
+        if (textAnalysis.wordCount && textAnalysis.wordCount > 50) {
+            summary.positivePoints.push("✅ Texto com conteúdo substancial");
+        }
+
+        // Recomendação mais específica baseada no score
+        if (result.credibilityScore >= 0.85) {
+            summary.recommendation = "✅ Esta notícia apresenta alta credibilidade. Ainda assim, é sempre bom verificar outras fontes.";
+        } else if (result.credibilityScore >= 0.70) {
+            summary.recommendation = "✅ Notícia com boa credibilidade. Recomenda-se uma verificação adicional em fontes conhecidas.";
+        } else if (result.credibilityScore >= 0.55) {
+            summary.recommendation = "⚠️ Credibilidade moderada. É importante verificar esta informação em múltiplas fontes antes de compartilhar.";
+        } else if (result.credibilityScore >= 0.35) {
+            summary.recommendation = "⚠️ Baixa credibilidade detectada. Verifique cuidadosamente em fontes oficiais e confiáveis.";
+        } else if (result.credibilityScore >= 0.20) {
+            summary.recommendation = "🚨 ATENÇÃO: Esta notícia apresenta várias características de desinformação. Não compartilhe sem verificação rigorosa.";
         } else {
-            summary.recommendation = "⚠️ CUIDADO: Esta notícia apresenta características de desinformação. Verifique em fontes oficiais antes de compartilhar.";
+            summary.recommendation = "🚨 ALERTA: Alta probabilidade de fake news. Esta notícia apresenta múltiplos sinais de desinformação. NÃO compartilhe.";
         }
 
         return summary;

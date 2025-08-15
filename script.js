@@ -116,20 +116,29 @@ document.addEventListener('keydown', function(e) {
     }
 });
 
-// Exemplos de notícias para teste rápido
+// Exemplos de notícias para teste rápido com diferentes scores
 function loadExample(type) {
     const textArea = document.getElementById('newsText');
     const urlInput = document.getElementById('newsUrl');
-    
+
     if (type === 'fake') {
-        textArea.value = "URGENTE!!! BOMBA: MÍDIA NÃO MOSTRA A VERDADE QUE NINGUÉM CONTA! COMPARTILHE ANTES QUE APAGUEM!!! Descoberta revolucionária que os poderosos querem esconder do povo brasileiro!!!";
+        textArea.value = "URGENTE!!! BOMBA: MÍDIA NÃO MOSTRA A VERDADE QUE NINGUÉM CONTA! COMPARTILHE ANTES QUE APAGUEM!!! Descoberta revolucionária que os poderosos querem esconder do povo brasileiro!!! GOVERNO ESCONDE TUDO!!!";
         urlInput.value = "";
     } else if (type === 'real') {
-        textArea.value = "O Ministério da Saúde divulgou hoje novos dados sobre a campanha de vacinação no país. Segundo o relatório, foram aplicadas mais de 2 milhões de doses na última semana. Os números mostram um aumento gradual na cobertura vacinal.";
+        textArea.value = "O Ministério da Saúde divulgou hoje novos dados sobre a campanha de vacinação no país. Segundo o relatório oficial, foram aplicadas mais de 2 milhões de doses na última semana. Os dados mostram um aumento gradual na cobertura vacinal, conforme explicou o especialista Dr. João Silva, pesquisador da Universidade Federal. O estudo foi realizado entre os dias 15 e 22 de janeiro de 2024.";
         urlInput.value = "";
     } else if (type === 'url') {
         textArea.value = "";
         urlInput.value = "https://g1.globo.com";
+    } else if (type === 'moderate') {
+        textArea.value = "Nova descoberta científica pode revolucionar o tratamento de doenças. Pesquisadores encontraram uma possível solução, mas ainda são necessários mais estudos para confirmar a eficácia.";
+        urlInput.value = "";
+    } else if (type === 'suspicious') {
+        textArea.value = "EXCLUSIVO: Método revolucionário que médicos não querem que você saiba! Compartilhe com seus amigos antes que removam este conteúdo!";
+        urlInput.value = "";
+    } else if (type === 'credible_url') {
+        textArea.value = "";
+        urlInput.value = "https://bbc.com";
     }
 }
 
@@ -140,10 +149,17 @@ document.addEventListener('DOMContentLoaded', function() {
     const examplesDiv = document.createElement('div');
     examplesDiv.innerHTML = `
         <div style="text-align: center; margin: 20px 0; padding: 15px; background: #f8f9fa; border-radius: 10px;">
-            <p style="margin-bottom: 10px; color: #666;"><strong>Exemplos para teste:</strong></p>
-            <button onclick="loadExample('fake')" style="margin: 5px; padding: 8px 15px; background: #dc3545; color: white; border: none; border-radius: 5px; cursor: pointer;">Notícia Suspeita</button>
-            <button onclick="loadExample('real')" style="margin: 5px; padding: 8px 15px; background: #28a745; color: white; border: none; border-radius: 5px; cursor: pointer;">Notícia Normal</button>
-            <button onclick="loadExample('url')" style="margin: 5px; padding: 8px 15px; background: #17a2b8; color: white; border: none; border-radius: 5px; cursor: pointer;">Testar URL</button>
+            <p style="margin-bottom: 15px; color: #666;"><strong>📝 Exemplos para teste (diferentes scores):</strong></p>
+            <div style="margin-bottom: 10px;">
+                <button onclick="loadExample('fake')" style="margin: 3px; padding: 8px 12px; background: #dc3545; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 12px;">🚨 Fake News (0-20%)</button>
+                <button onclick="loadExample('suspicious')" style="margin: 3px; padding: 8px 12px; background: #fd7e14; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 12px;">⚠️ Suspeita (30-50%)</button>
+                <button onclick="loadExample('moderate')" style="margin: 3px; padding: 8px 12px; background: #ffc107; color: black; border: none; border-radius: 5px; cursor: pointer; font-size: 12px;">📰 Moderada (60-70%)</button>
+            </div>
+            <div>
+                <button onclick="loadExample('real')" style="margin: 3px; padding: 8px 12px; background: #28a745; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 12px;">✅ Confiável (80-90%)</button>
+                <button onclick="loadExample('url')" style="margin: 3px; padding: 8px 12px; background: #17a2b8; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 12px;">🌐 URL G1</button>
+                <button onclick="loadExample('credible_url')" style="margin: 3px; padding: 8px 12px; background: #6f42c1; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 12px;">🌐 URL BBC</button>
+            </div>
         </div>
     `;
     
