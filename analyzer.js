@@ -5,45 +5,97 @@
 
 class NewsAnalyzer {
     constructor() {
-        // Padrões suspeitos com diferentes pesos
+        // Padrões suspeitos com diferentes pesos (incluindo específicos do Brasil)
         this.suspiciousPatterns = [
-            { pattern: /\b(URGENTE|BOMBA|EXCLUSIVO)\b/gi, weight: 0.15, name: "Linguagem sensacionalista" },
-            { pattern: /\b(MÍDIA NÃO MOSTRA|IMPRENSA ESCONDE|MÍDIA MAINSTREAM)\b/gi, weight: 0.20, name: "Desconfiança da mídia" },
-            { pattern: /\b(COMPARTILHE ANTES QUE APAGUEM|DIVULGUE|ESPALHE)\b/gi, weight: 0.18, name: "Apelo ao compartilhamento" },
-            { pattern: /\b(VERDADE QUE NINGUÉM CONTA|SEGREDO|CONSPIRAÇÃO)\b/gi, weight: 0.17, name: "Teoria conspiratória" },
+            // Linguagem sensacionalista
+            { pattern: /\b(URGENTE|BOMBA|EXCLUSIVO|CHOCANTE|INACREDITÁVEL)\b/gi, weight: 0.15, name: "Linguagem sensacionalista" },
+
+            // Desconfiança da mídia (padrões brasileiros)
+            { pattern: /\b(MÍDIA NÃO MOSTRA|IMPRENSA ESCONDE|MÍDIA MAINSTREAM|GLOBO ESCONDE|RECORD NÃO MOSTRA)\b/gi, weight: 0.20, name: "Desconfiança da mídia" },
+
+            // Apelo ao compartilhamento
+            { pattern: /\b(COMPARTILHE ANTES QUE APAGUEM|DIVULGUE|ESPALHE|MANDE PARA TODOS|REPASSE)\b/gi, weight: 0.18, name: "Apelo ao compartilhamento" },
+
+            // Teorias conspiratórias básicas
+            { pattern: /\b(VERDADE QUE NINGUÉM CONTA|SEGREDO|CONSPIRAÇÃO|ELES NÃO QUEREM QUE VOCÊ SAIBA)\b/gi, weight: 0.17, name: "Teoria conspiratória" },
+
+            // Pontuação excessiva
             { pattern: /!!!+/g, weight: 0.05, name: "Pontuação excessiva" },
             { pattern: /[A-Z]{15,}/g, weight: 0.12, name: "Texto em maiúsculas" },
-            { pattern: /\b(FAKE|MENTIRA|ENGANAÇÃO|FARSA)\b/gi, weight: 0.10, name: "Acusações diretas" },
-            { pattern: /\b(GOVERNO ESCONDE|ELITE|ILLUMINATI|NOVA ORDEM)\b/gi, weight: 0.25, name: "Teoria conspiratória avançada" }
+
+            // Acusações diretas
+            { pattern: /\b(FAKE|MENTIRA|ENGANAÇÃO|FARSA|GOLPE|FRAUDE)\b/gi, weight: 0.10, name: "Acusações diretas" },
+
+            // Teorias conspiratórias avançadas (contexto brasileiro)
+            { pattern: /\b(GOVERNO ESCONDE|ELITE|ILLUMINATI|NOVA ORDEM|DEEP STATE|GLOBALISTAS)\b/gi, weight: 0.25, name: "Teoria conspiratória avançada" },
+
+            // Padrões específicos brasileiros
+            { pattern: /\b(PETRALHA|MORTADELA|COXINHA|COMUNISTA|BOLIVARIANO)\b/gi, weight: 0.22, name: "Polarização política brasileira" },
+            { pattern: /\b(MAMADEIRA DE PIROCA|KIT GAY|URNA ELETRÔNICA|FRAUDE NAS ELEIÇÕES)\b/gi, weight: 0.30, name: "Fake news clássicas brasileiras" },
+            { pattern: /\b(MÉDICOS ESCONDEM|INDÚSTRIA FARMACÊUTICA|CURA DO CÂNCER|REMÉDIO MILAGROSO)\b/gi, weight: 0.28, name: "Desinformação médica" },
+            { pattern: /\b(VACINA MATA|CHIP NA VACINA|CONTROLE MENTAL|5G MATA)\b/gi, weight: 0.35, name: "Desinformação sobre saúde pública" },
+
+            // Linguagem de WhatsApp/redes sociais
+            { pattern: /\b(PESSOAL|GALERA|AMIGOS|FAMÍLIA|GRUPO)\s+(OLHEM|VEJAM|LEIAM)/gi, weight: 0.12, name: "Linguagem de redes sociais" },
+            { pattern: /\b(RECEBI NO WHATSAPP|MANDARAM NO GRUPO|VI NO FACEBOOK)\b/gi, weight: 0.15, name: "Fonte não verificada" }
         ];
 
-        // Domínios com diferentes níveis de credibilidade
+        // Domínios com diferentes níveis de credibilidade (foco brasileiro)
         this.credibleDomains = {
             // Muito confiáveis (boost +0.25)
             'highly_credible': [
                 'bbc.com', 'reuters.com', 'ap.org', 'agenciabrasil.ebc.com.br',
-                'folha.uol.com.br', 'estadao.com.br'
+                'folha.uol.com.br', 'estadao.com.br', 'valor.globo.com',
+                'oglobo.globo.com', 'g1.globo.com'
             ],
             // Confiáveis (boost +0.15)
             'credible': [
-                'g1.globo.com', 'uol.com.br', 'cnn.com.br', 'band.uol.com.br',
-                'r7.com', 'oglobo.globo.com', 'veja.abril.com.br', 'exame.com',
-                'valor.globo.com', 'cartacapital.com.br', 'istoedinheiro.com.br'
+                'uol.com.br', 'cnn.com.br', 'band.uol.com.br', 'r7.com',
+                'veja.abril.com.br', 'exame.com', 'cartacapital.com.br',
+                'istoedinheiro.com.br', 'nexojornal.com.br', 'piauí.folha.uol.com.br',
+                'brasil247.com', 'brasildefato.com.br', 'diariodocentrodomundo.com.br'
             ],
             // Moderadamente confiáveis (boost +0.08)
             'moderate': [
                 'metropoles.com', 'poder360.com.br', 'conjur.com.br',
-                'gazetadopovo.com.br', 'correiobraziliense.com.br'
+                'gazetadopovo.com.br', 'correiobraziliense.com.br', 'em.com.br',
+                'tribunaonline.com.br', 'gauchazh.clicrbs.com.br', 'jornaldocomercio.com',
+                'diariodepernambuco.com.br', 'opovo.com.br'
+            ],
+            // Suspeitos (penalidade -0.15)
+            'suspicious': [
+                'sensacionalista.com.br', 'diariodobrasil.org', 'jornallivre.com.br',
+                'conexaopolitica.com.br', 'brasil.elpais.com', 'revistaforum.com.br'
             ]
         };
 
-        // Palavras que indicam credibilidade
+        // Palavras que indicam credibilidade (contexto brasileiro)
         this.credibilityIndicators = [
-            { pattern: /\b(segundo|de acordo com|conforme|dados mostram)\b/gi, weight: 0.08, name: "Citação de fontes" },
-            { pattern: /\b(pesquisa|estudo|relatório|levantamento)\b/gi, weight: 0.06, name: "Referência a estudos" },
-            { pattern: /\b(especialista|professor|doutor|pesquisador)\b/gi, weight: 0.07, name: "Citação de especialistas" },
+            // Citação de fontes
+            { pattern: /\b(segundo|de acordo com|conforme|dados mostram|informou|declarou)\b/gi, weight: 0.08, name: "Citação de fontes" },
+
+            // Referência a estudos e pesquisas
+            { pattern: /\b(pesquisa|estudo|relatório|levantamento|análise|survey)\b/gi, weight: 0.06, name: "Referência a estudos" },
+
+            // Especialistas e autoridades
+            { pattern: /\b(especialista|professor|doutor|pesquisador|PhD|mestre)\b/gi, weight: 0.07, name: "Citação de especialistas" },
+
+            // Datas específicas
             { pattern: /\b(\d{1,2}\/\d{1,2}\/\d{4}|\d{1,2} de \w+ de \d{4})\b/gi, weight: 0.04, name: "Data específica" },
-            { pattern: /\b(ministério|secretaria|instituto|universidade)\b/gi, weight: 0.05, name: "Instituições oficiais" }
+
+            // Instituições oficiais brasileiras
+            { pattern: /\b(ministério|secretaria|instituto|universidade|IBGE|IPEA|CNPq|CAPES)\b/gi, weight: 0.05, name: "Instituições oficiais" },
+            { pattern: /\b(Anvisa|SUS|Ministério da Saúde|Fiocruz|Butantan)\b/gi, weight: 0.08, name: "Órgãos de saúde oficiais" },
+            { pattern: /\b(STF|TSE|TCU|Polícia Federal|Ministério Público)\b/gi, weight: 0.07, name: "Órgãos oficiais de justiça" },
+
+            // Universidades brasileiras reconhecidas
+            { pattern: /\b(USP|UNICAMP|UFRJ|UFMG|UnB|UFRGS|UFSC|UFC)\b/gi, weight: 0.06, name: "Universidades reconhecidas" },
+
+            // Linguagem técnica e científica
+            { pattern: /\b(metodologia|amostra|estatística|evidência|peer review|revisão por pares)\b/gi, weight: 0.05, name: "Linguagem científica" },
+
+            // Transparência e fontes
+            { pattern: /\b(fonte|referência|bibliografia|link|acesso em|disponível em)\b/gi, weight: 0.04, name: "Transparência de fontes" }
         ];
     }
 
@@ -130,6 +182,9 @@ class NewsAnalyzer {
             } else if (this.credibleDomains.moderate.includes(domain)) {
                 credibilityLevel = 'moderate';
                 credibilityBoost = 0.08;
+            } else if (this.credibleDomains.suspicious.includes(domain)) {
+                credibilityLevel = 'suspicious';
+                credibilityBoost = -0.15; // Penalidade para sites suspeitos
             }
 
             const analysis = {
