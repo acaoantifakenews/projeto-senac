@@ -65,6 +65,27 @@
 
             <div id="result"></div>
 
+            <!-- Sistema de Feedback -->
+            <div class="feedback-section" id="feedbackSection" style="display: none;">
+                <h4>🤖 Ajude a IA a Melhorar</h4>
+                <p>Esta análise está correta?</p>
+                <div class="feedback-buttons">
+                    <button onclick="submitFeedback(true)" class="feedback-btn correct">✅ Correto</button>
+                    <button onclick="submitFeedback(false)" class="feedback-btn incorrect">❌ Incorreto</button>
+                </div>
+                <div id="feedbackDetails" style="display: none;">
+                    <p>Por que está incorreto?</p>
+                    <select id="feedbackReason">
+                        <option value="score_too_high">Score muito alto</option>
+                        <option value="score_too_low">Score muito baixo</option>
+                        <option value="missed_fake">Não detectou fake news</option>
+                        <option value="false_positive">Falso positivo</option>
+                        <option value="missing_pattern">Padrão não detectado</option>
+                    </select>
+                    <button onclick="submitDetailedFeedback()" class="feedback-btn">Enviar</button>
+                </div>
+            </div>
+
             <!-- Dashboard de Estatísticas -->
             <div class="stats-section" id="statsSection" style="display: none;">
                 <h3>📊 Dashboard de Estatísticas</h3>

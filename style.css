@@ -802,6 +802,107 @@ body.dark-mode .comparison-result {
     color: #b0b0b0;
 }
 
+/* Sistema de Feedback */
+.feedback-section {
+    margin-top: 30px;
+    padding: 20px;
+    background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%);
+    border-radius: 15px;
+    border: 2px solid #2196f3;
+    text-align: center;
+}
+
+.feedback-section h4 {
+    margin-bottom: 15px;
+    color: #1976d2;
+    font-size: 1.2em;
+}
+
+.feedback-buttons {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    margin: 20px 0;
+}
+
+.feedback-btn {
+    padding: 12px 25px;
+    border: none;
+    border-radius: 25px;
+    font-size: 1em;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    min-width: 120px;
+}
+
+.feedback-btn.correct {
+    background: linear-gradient(135deg, #4caf50 0%, #81c784 100%);
+    color: white;
+}
+
+.feedback-btn.correct:hover {
+    background: linear-gradient(135deg, #388e3c 0%, #66bb6a 100%);
+    transform: translateY(-2px);
+}
+
+.feedback-btn.incorrect {
+    background: linear-gradient(135deg, #f44336 0%, #ef5350 100%);
+    color: white;
+}
+
+.feedback-btn.incorrect:hover {
+    background: linear-gradient(135deg, #d32f2f 0%, #e53935 100%);
+    transform: translateY(-2px);
+}
+
+#feedbackDetails {
+    margin-top: 20px;
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.8);
+    border-radius: 10px;
+}
+
+#feedbackDetails select {
+    padding: 10px;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    font-size: 1em;
+    margin: 10px;
+    min-width: 200px;
+}
+
+#feedbackDetails .feedback-btn {
+    background: linear-gradient(135deg, #2196f3 0%, #64b5f6 100%);
+    color: white;
+    margin-top: 15px;
+}
+
+#feedbackDetails .feedback-btn:hover {
+    background: linear-gradient(135deg, #1976d2 0%, #42a5f5 100%);
+}
+
+/* Modo escuro para feedback */
+body.dark-mode .feedback-section {
+    background: linear-gradient(135deg, #1a237e 0%, #3f51b5 100%);
+    border-color: #3f51b5;
+}
+
+body.dark-mode .feedback-section h4 {
+    color: #e3f2fd;
+}
+
+body.dark-mode #feedbackDetails {
+    background: rgba(0, 0, 0, 0.3);
+    color: #e0e0e0;
+}
+
+body.dark-mode #feedbackDetails select {
+    background: #2d2d2d;
+    border-color: #555;
+    color: #e0e0e0;
+}
+
 /* Responsividade */
 @media (max-width: 768px) {
     .comparison-container {
@@ -820,6 +921,16 @@ body.dark-mode .comparison-result {
 
     .theme-options {
         grid-template-columns: repeat(2, 1fr);
+    }
+
+    .feedback-buttons {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .feedback-btn {
+        width: 100%;
+        max-width: 200px;
     }
 }
 

@@ -40,11 +40,44 @@ class NewsAnalyzer {
             { pattern: /\b(RECEBI NO WHATSAPP|MANDARAM NO GRUPO|VI NO FACEBOOK)\b/gi, weight: 0.15, name: "Fonte não verificada" }
         ];
 
-        // Padrões de conteúdo factualmente suspeito
+        // Base de conhecimento factual específica
+        this.knowledgeBase = {
+            // Pessoas notoriamente mortas (com datas)
+            deadPeople: [
+                { names: ['Lázaro', 'Lazaro', 'Lázaro Barbosa'], death: '2021', context: 'serial killer' },
+                { names: ['Michael Jackson'], death: '2009', context: 'cantor' },
+                { names: ['Elvis Presley', 'Elvis'], death: '1977', context: 'cantor' },
+                { names: ['Ayrton Senna'], death: '1994', context: 'piloto' },
+                { names: ['Cazuza'], death: '1990', context: 'cantor' },
+                { names: ['Chorão', 'Alexandre Magno Abrão'], death: '2013', context: 'cantor Charlie Brown Jr' },
+                { names: ['Tim Maia'], death: '1998', context: 'cantor' },
+                { names: ['Raul Seixas'], death: '1989', context: 'cantor' }
+            ],
+
+            // Eventos históricos confirmados
+            historicalEvents: [
+                { event: '11 de setembro', year: '2001', type: 'atentado' },
+                { event: 'holocausto', year: '1933-1945', type: 'genocídio' },
+                { event: 'chegada à lua', year: '1969', type: 'conquista espacial' },
+                { event: 'morte de JFK', year: '1963', type: 'assassinato' }
+            ],
+
+            // Fake news clássicas brasileiras
+            knownFakeNews: [
+                'mamadeira de piroca',
+                'kit gay',
+                'urna eletrônica fraude',
+                'vacina com chip',
+                '5G mata',
+                'terra plana',
+                'chemtrails'
+            ]
+        };
+
+        // Padrões de conteúdo factualmente suspeito (melhorados)
         this.factualSuspiciousPatterns = [
-            // Pessoas famosas "mortas" que estariam vivas
-            { pattern: /\b(Lázaro|Lazaro).*(não morreu|está vivo|morando|escondido|fugiu)/gi, weight: 0.40, name: "Afirmação sobre pessoa notoriamente morta" },
-            { pattern: /\b(Michael Jackson|Elvis|Ayrton Senna|Cazuza).*(vivo|não morreu|escondido)/gi, weight: 0.35, name: "Celebridade morta supostamente viva" },
+            // Pessoas mortas que estariam vivas (usando base de conhecimento)
+            { pattern: this.createDeadPeoplePattern(), weight: 0.45, name: "Afirmação sobre pessoa notoriamente morta" },
 
             // Eventos históricos negados
             { pattern: /\b(11 de setembro|holocausto|chegada à lua).*(falso|encenado|não aconteceu|mentira)/gi, weight: 0.30, name: "Negação de eventos históricos" },
@@ -184,6 +217,162 @@ class NewsAnalyzer {
             // Transparência e fontes
             { pattern: /\b(fonte|referência|bibliografia|link|acesso em|disponível em)\b/gi, weight: 0.04, name: "Transparência de fontes" }
         ];
+
+        // Sistema de aprendizado
+        this.learningData = this.loadLearningData();
+    }
+
+    // Cria padrões dinâmicos baseados na base de conhecimento
+    createDeadPeoplePattern() {
+        const names = this.knowledgeBase.deadPeople.flatMap(person => person.names);
+        const namePattern = names.join('|');
+        return new RegExp(`\\b(${namePattern}).*(não morreu|está vivo|morando|escondido|fugiu|foi visto|continua vivo)`, 'gi');
+    }
+
+    // Carrega dados de aprendizado
+    loadLearningData() {
+        try {
+            return JSON.parse(localStorage.getItem('aiLearningData') || '{}');
+        } catch (e) {
+            return {};
+        }
+    }
+
+    // Salva dados de aprendizado
+    saveLearningData() {
+        try {
+            localStorage.setItem('aiLearningData', JSON.stringify(this.learningData));
+        } catch (e) {
+            console.log('Erro ao salvar dados de aprendizado:', e);
+        }
+    }
+
+    // Aplica aprendizado aos padrões
+    applyLearning(text, result) {
+        const textHash = this.hashText(text);
+
+        if (this.learningData[textHash]) {
+            const learned = this.learningData[textHash];
+
+            // Ajusta score baseado no feedback
+            if (learned.feedback === 'incorrect') {
+                if (learned.reason === 'score_too_high') {
+                    result.credibilityScore *= 0.7; // Reduz score
+                } else if (learned.reason === 'score_too_low') {
+                    result.credibilityScore *= 1.3; // Aumenta score
+                } else if (learned.reason === 'missed_fake') {
+                    result.credibilityScore *= 0.5; // Penaliza muito
+                    result.isLikelyFake = true;
+                }
+
+                // Garante limites
+                result.credibilityScore = Math.max(0, Math.min(1, result.credibilityScore));
+            }
+        }
+
+        return result;
+    }
+
+    // Cria hash simples do texto
+    hashText(text) {
+        let hash = 0;
+        for (let i = 0; i < text.length; i++) {
+            const char = text.charCodeAt(i);
+            hash = ((hash << 5) - hash) + char;
+            hash = hash & hash; // Converte para 32bit
+        }
+        return hash.toString();
+    }
+
+    // Análise contextual avançada
+    performContextualAnalysis(text) {
+        const context = {
+            hasDeadPersonClaim: false,
+            hasImpossibleNumbers: false,
+            hasKnownFakeNews: false,
+            hasContradictions: false,
+            suspiciousContext: []
+        };
+
+        // Verifica pessoas mortas
+        this.knowledgeBase.deadPeople.forEach(person => {
+            person.names.forEach(name => {
+                if (text.toLowerCase().includes(name.toLowerCase())) {
+                    const alivePattern = /(não morreu|está vivo|morando|escondido|fugiu|foi visto|continua vivo)/gi;
+                    if (alivePattern.test(text)) {
+                        context.hasDeadPersonClaim = true;
+                        context.suspiciousContext.push(`Afirma que ${name} está vivo (morreu em ${person.death})`);
+                    }
+                }
+            });
+        });
+
+        // Verifica fake news conhecidas
+        this.knowledgeBase.knownFakeNews.forEach(fakeNews => {
+            if (text.toLowerCase().includes(fakeNews.toLowerCase())) {
+                context.hasKnownFakeNews = true;
+                context.suspiciousContext.push(`Menciona fake news conhecida: ${fakeNews}`);
+            }
+        });
+
+        // Verifica números impossíveis específicos
+        const impossiblePatterns = [
+            { pattern: /\b(9[5-9]|100)% dos (médicos|cientistas)/gi, desc: "Consenso impossível de profissionais" },
+            { pattern: /\b[1-9]\d{6,} (mortos|mortes|vítimas).*(ontem|hoje|dia)/gi, desc: "Número de mortes impossível em um dia" },
+            { pattern: /\b(200|300|400|500)% (mais|eficaz|desconto)/gi, desc: "Porcentagem matematicamente impossível" }
+        ];
+
+        impossiblePatterns.forEach(item => {
+            if (item.pattern.test(text)) {
+                context.hasImpossibleNumbers = true;
+                context.suspiciousContext.push(item.desc);
+            }
+        });
+
+        return context;
+    }
+
+    // Análise de coerência do texto
+    analyzeCoherence(text) {
+        const coherence = {
+            hasLogicalFlow: true,
+            hasContradictions: false,
+            hasVagueStatements: false,
+            coherenceScore: 1.0,
+            issues: []
+        };
+
+        // Verifica contradições temporais
+        const timePatterns = [
+            { pattern: /ontem.*amanhã/gi, issue: "Contradição temporal" },
+            { pattern: /passado.*futuro.*mesmo tempo/gi, issue: "Contradição temporal" },
+            { pattern: /nunca.*sempre.*mesma frase/gi, issue: "Contradição lógica" }
+        ];
+
+        timePatterns.forEach(item => {
+            if (item.pattern.test(text)) {
+                coherence.hasContradictions = true;
+                coherence.issues.push(item.issue);
+                coherence.coherenceScore -= 0.2;
+            }
+        });
+
+        // Verifica declarações vagas
+        const vaguePatterns = [
+            /\b(alguns dizem|muitos acreditam|há quem diga|fontes não confirmadas)\b/gi,
+            /\b(segundo boatos|ouvi dizer|me contaram|alguém disse)\b/gi
+        ];
+
+        vaguePatterns.forEach(pattern => {
+            if (pattern.test(text)) {
+                coherence.hasVagueStatements = true;
+                coherence.issues.push("Declarações vagas sem fontes");
+                coherence.coherenceScore -= 0.1;
+            }
+        });
+
+        coherence.coherenceScore = Math.max(0, coherence.coherenceScore);
+        return coherence;
     }
 
     analyzeText(text) {
@@ -292,6 +481,12 @@ class NewsAnalyzer {
         analysis.numericalSuspiciousScore = Math.min(numericalSuspiciousScore, 1.0);
         analysis.sentimentScore = Math.min(sentimentScore, 0.8);
 
+        // Análise contextual avançada
+        analysis.contextualAnalysis = this.performContextualAnalysis(text);
+
+        // Análise de coerência
+        analysis.coherenceAnalysis = this.analyzeCoherence(text);
+
         // Análise de linguagem
         analysis.languageAnalysis = {
             exclamationCount: (text.match(/!/g) || []).length,
@@ -382,6 +577,33 @@ class NewsAnalyzer {
             // Penalidade extra para sentimento muito carregado
             if (textAnalysis.sentimentScore > 0.3) {
                 score -= 0.1; // Penalidade adicional
+            }
+        }
+
+        // PENALIDADE MÁXIMA por análise contextual
+        if (textAnalysis.contextualAnalysis) {
+            const context = textAnalysis.contextualAnalysis;
+
+            if (context.hasDeadPersonClaim) {
+                score -= 0.6; // Penalidade severa para afirmar que mortos estão vivos
+            }
+
+            if (context.hasKnownFakeNews) {
+                score -= 0.4; // Penalidade alta para fake news conhecidas
+            }
+
+            if (context.hasImpossibleNumbers) {
+                score -= 0.3; // Penalidade para números impossíveis
+            }
+        }
+
+        // PENALIDADE por falta de coerência
+        if (textAnalysis.coherenceAnalysis) {
+            const coherence = textAnalysis.coherenceAnalysis;
+            score -= (1 - coherence.coherenceScore) * 0.3; // Até 30% de penalidade
+
+            if (coherence.hasContradictions) {
+                score -= 0.2; // Penalidade extra por contradições
             }
         }
 
@@ -492,6 +714,12 @@ class NewsAnalyzer {
         // Verificação externa básica (simulada)
         result.externalVerification = this.performExternalCheck(text, url);
 
+        // Aplica aprendizado de machine learning
+        result = this.applyLearning(text, result);
+
+        // Recalcula isLikelyFake após todas as análises
+        result.isLikelyFake = result.credibilityScore < 0.4;
+
         return result;
     }
 
@@ -572,6 +800,21 @@ class NewsAnalyzer {
                 if (emotionData.count > 0) {
                     summary.mainIssues.push(`😠 SENTIMENTO SUSPEITO: ${emotionData.name} (${emotionData.count}x)`);
                 }
+            });
+        }
+
+        // Problemas contextuais (CRÍTICOS)
+        if (textAnalysis.contextualAnalysis) {
+            const context = textAnalysis.contextualAnalysis;
+            context.suspiciousContext.forEach(issue => {
+                summary.mainIssues.push(`🚨 CONTEXTO CRÍTICO: ${issue}`);
+            });
+        }
+
+        // Problemas de coerência
+        if (textAnalysis.coherenceAnalysis && textAnalysis.coherenceAnalysis.issues.length > 0) {
+            textAnalysis.coherenceAnalysis.issues.forEach(issue => {
+                summary.mainIssues.push(`🔍 COERÊNCIA: ${issue}`);
             });
         }
 

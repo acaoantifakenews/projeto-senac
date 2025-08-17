@@ -64,6 +64,9 @@ function displayResult(result) {
     // Salva no histórico e estatísticas
     saveToHistory(result);
     saveStats(result);
+
+    // Mostra sistema de feedback
+    showFeedbackSystem(result);
     
     const mainIssuesHtml = summary.mainIssues.length > 0 
         ? summary.mainIssues.map(issue => `<li>${issue}</li>`).join('')
@@ -228,6 +231,9 @@ function loadExample(type) {
     } else if (type === 'external_check') {
         textArea.value = "Notícia verificada por fact-checkers independentes.";
         urlInput.value = "https://lupa.uol.com.br/jornalismo/2024/01/15/verificacao-exemplo";
+    } else if (type === 'lazaro_test') {
+        textArea.value = "Lázaro não morreu e está morando em Ribeirão Preto. Ele conseguiu fugir da polícia e agora vive escondido. Meu primo que mora lá viu ele no mercado semana passada comprando mantimentos.";
+        urlInput.value = "";
     }
 }
 
@@ -252,8 +258,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 <button onclick="loadExample('real')" style="margin: 1px; padding: 5px 7px; background: #28a745; color: white; border: none; border-radius: 3px; cursor: pointer; font-size: 9px;">✅ Confiável</button>
                 <button onclick="loadExample('scientific')" style="margin: 1px; padding: 5px 7px; background: #20c997; color: white; border: none; border-radius: 3px; cursor: pointer; font-size: 9px;">🔬 Científica</button>
                 <button onclick="loadExample('external_check')" style="margin: 1px; padding: 5px 7px; background: #17a2b8; color: white; border: none; border-radius: 3px; cursor: pointer; font-size: 9px;">🔍 Externa</button>
+                <button onclick="loadExample('lazaro_test')" style="margin: 1px; padding: 5px 7px; background: #000000; color: white; border: none; border-radius: 3px; cursor: pointer; font-size: 9px;">💀 Lázaro</button>
             </div>
-            <p style="margin-top: 8px; font-size: 10px; color: #888;">💡 Sistema completo: Dashboard + Temas + Comparação + Sentimento + Verificação Externa</p>
+            <p style="margin-top: 8px; font-size: 10px; color: #888;">💡 IA Avançada: Aprendizado + Contexto + Coerência + Feedback</p>
         </div>
     `;
     
@@ -456,6 +463,7 @@ function saveStats(result) {
 
 function displayStats() {
     const stats = updateStats();
+    const learningStats = getLearningStats();
     const statsGrid = document.getElementById('statsGrid');
 
     if (!statsGrid) return;
@@ -480,6 +488,14 @@ function displayStats() {
         <div class="stat-card time">
             <div class="stat-number" style="color: #ffc107;">${stats.timesSaved.toFixed(1)}h</div>
             <div class="stat-label">Tempo Economizado</div>
+        </div>
+        <div class="stat-card" style="border-left: 4px solid #9c27b0;">
+            <div class="stat-number" style="color: #9c27b0;">${learningStats.accuracy}%</div>
+            <div class="stat-label">Precisão da IA</div>
+        </div>
+        <div class="stat-card" style="border-left: 4px solid #ff9800;">
+            <div class="stat-number" style="color: #ff9800;">${learningStats.total}</div>
+            <div class="stat-label">Feedbacks Recebidos</div>
         </div>
     `;
 }
@@ -662,6 +678,141 @@ function showComparisonSummary(resultA, resultB) {
 
         container.appendChild(summary);
     }, 500);
+}
+
+// Sistema de Feedback e Aprendizado
+let currentAnalysisResult = null;
+let currentAnalysisText = null;
+
+function showFeedbackSystem(result) {
+    currentAnalysisResult = result;
+    currentAnalysisText = document.getElementById('newsText').value.trim();
+
+    const feedbackSection = document.getElementById('feedbackSection');
+    feedbackSection.style.display = 'block';
+
+    // Scroll para o feedback
+    setTimeout(() => {
+        feedbackSection.scrollIntoView({ behavior: 'smooth' });
+    }, 500);
+}
+
+function submitFeedback(isCorrect) {
+    const feedbackSection = document.getElementById('feedbackSection');
+    const feedbackDetails = document.getElementById('feedbackDetails');
+
+    if (isCorrect) {
+        // Feedback positivo
+        saveFeedbackData(true, null);
+        feedbackSection.innerHTML = `
+            <div style="text-align: center; padding: 20px; background: #d4edda; border-radius: 10px; color: #155724;">
+                ✅ Obrigado! A IA ficou mais inteligente com seu feedback.
+            </div>
+        `;
+        setTimeout(() => {
+            feedbackSection.style.display = 'none';
+        }, 3000);
+    } else {
+        // Feedback negativo - pede detalhes
+        feedbackDetails.style.display = 'block';
+    }
+}
+
+function submitDetailedFeedback() {
+    const reason = document.getElementById('feedbackReason').value;
+    saveFeedbackData(false, reason);
+
+    const feedbackSection = document.getElementById('feedbackSection');
+    feedbackSection.innerHTML = `
+        <div style="text-align: center; padding: 20px; background: #f8d7da; border-radius: 10px; color: #721c24;">
+            🤖 Feedback registrado! A IA vai aprender com este erro e melhorar.
+        </div>
+    `;
+
+    setTimeout(() => {
+        feedbackSection.style.display = 'none';
+    }, 3000);
+}
+
+function saveFeedbackData(isCorrect, reason) {
+    if (!currentAnalysisText || !currentAnalysisResult) return;
+
+    try {
+        // Carrega dados existentes
+        let learningData = JSON.parse(localStorage.getItem('aiLearningData') || '{}');
+
+        // Cria hash do texto
+        const textHash = hashText(currentAnalysisText);
+
+        // Salva feedback
+        learningData[textHash] = {
+            text: currentAnalysisText.substring(0, 200),
+            originalScore: currentAnalysisResult.credibilityScore,
+            feedback: isCorrect ? 'correct' : 'incorrect',
+            reason: reason,
+            timestamp: new Date().toISOString(),
+            count: (learningData[textHash]?.count || 0) + 1
+        };
+
+        // Salva no localStorage
+        localStorage.setItem('aiLearningData', JSON.stringify(learningData));
+
+        // Atualiza estatísticas de aprendizado
+        updateLearningStats(isCorrect);
+
+        console.log('Feedback salvo:', { isCorrect, reason, textHash });
+    } catch (e) {
+        console.log('Erro ao salvar feedback:', e);
+    }
+}
+
+function hashText(text) {
+    let hash = 0;
+    for (let i = 0; i < text.length; i++) {
+        const char = text.charCodeAt(i);
+        hash = ((hash << 5) - hash) + char;
+        hash = hash & hash;
+    }
+    return hash.toString();
+}
+
+function updateLearningStats(isCorrect) {
+    try {
+        let stats = JSON.parse(localStorage.getItem('learningStats') || '{}');
+
+        if (!stats.totalFeedbacks) stats.totalFeedbacks = 0;
+        if (!stats.correctFeedbacks) stats.correctFeedbacks = 0;
+        if (!stats.incorrectFeedbacks) stats.incorrectFeedbacks = 0;
+
+        stats.totalFeedbacks++;
+        if (isCorrect) {
+            stats.correctFeedbacks++;
+        } else {
+            stats.incorrectFeedbacks++;
+        }
+
+        localStorage.setItem('learningStats', JSON.stringify(stats));
+    } catch (e) {
+        console.log('Erro ao atualizar stats de aprendizado:', e);
+    }
+}
+
+function getLearningStats() {
+    try {
+        const stats = JSON.parse(localStorage.getItem('learningStats') || '{}');
+        const accuracy = stats.totalFeedbacks > 0
+            ? Math.round((stats.correctFeedbacks / stats.totalFeedbacks) * 100)
+            : 0;
+
+        return {
+            total: stats.totalFeedbacks || 0,
+            correct: stats.correctFeedbacks || 0,
+            incorrect: stats.incorrectFeedbacks || 0,
+            accuracy: accuracy
+        };
+    } catch (e) {
+        return { total: 0, correct: 0, incorrect: 0, accuracy: 0 };
+    }
 }
 
 // Chama funções quando a página carrega
