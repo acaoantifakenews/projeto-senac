@@ -145,6 +145,9 @@ function loadExample(type) {
     } else if (type === 'scientific') {
         textArea.value = "Pesquisa da Fiocruz, em parceria com a USP, analisou 10.000 amostras usando metodologia peer review. Segundo o Dr. Carlos Santos, especialista em epidemiologia, os resultados foram publicados na revista Nature. O estudo está disponível em www.fiocruz.br/pesquisa com acesso livre.";
         urlInput.value = "";
+    } else if (type === 'factual_fake') {
+        textArea.value = "Lázaro não morreu e está morando em Ribeirão Preto. Ele conseguiu fugir e agora vive escondido. A polícia sabe mas não quer divulgar. Meu primo que mora lá viu ele no mercado semana passada.";
+        urlInput.value = "";
     }
 }
 
@@ -159,16 +162,17 @@ document.addEventListener('DOMContentLoaded', function() {
             <div style="margin-bottom: 8px;">
                 <button onclick="loadExample('fake')" style="margin: 2px; padding: 6px 10px; background: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 11px;">🚨 Fake Global</button>
                 <button onclick="loadExample('brazilian_fake')" style="margin: 2px; padding: 6px 10px; background: #8b0000; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 11px;">🇧🇷 Fake Brasil</button>
+                <button onclick="loadExample('factual_fake')" style="margin: 2px; padding: 6px 10px; background: #4a0e0e; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 11px;">💀 Fake Factual</button>
                 <button onclick="loadExample('suspicious')" style="margin: 2px; padding: 6px 10px; background: #fd7e14; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 11px;">⚠️ Suspeita</button>
-                <button onclick="loadExample('moderate')" style="margin: 2px; padding: 6px 10px; background: #ffc107; color: black; border: none; border-radius: 4px; cursor: pointer; font-size: 11px;">📰 Moderada</button>
             </div>
             <div style="margin-bottom: 8px;">
+                <button onclick="loadExample('moderate')" style="margin: 2px; padding: 6px 10px; background: #ffc107; color: black; border: none; border-radius: 4px; cursor: pointer; font-size: 11px;">📰 Moderada</button>
                 <button onclick="loadExample('real')" style="margin: 2px; padding: 6px 10px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 11px;">✅ Confiável</button>
                 <button onclick="loadExample('scientific')" style="margin: 2px; padding: 6px 10px; background: #20c997; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 11px;">🔬 Científica</button>
                 <button onclick="loadExample('url')" style="margin: 2px; padding: 6px 10px; background: #17a2b8; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 11px;">🌐 G1</button>
                 <button onclick="loadExample('credible_url')" style="margin: 2px; padding: 6px 10px; background: #6f42c1; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 11px;">🌐 BBC</button>
             </div>
-            <p style="margin-top: 10px; font-size: 11px; color: #888;">💡 Teste os diferentes padrões brasileiros de desinformação</p>
+            <p style="margin-top: 10px; font-size: 11px; color: #888;">💡 Agora detecta conteúdo factualmente incorreto (ex: Lázaro vivo)</p>
         </div>
     `;
     

@@ -40,6 +40,33 @@ class NewsAnalyzer {
             { pattern: /\b(RECEBI NO WHATSAPP|MANDARAM NO GRUPO|VI NO FACEBOOK)\b/gi, weight: 0.15, name: "Fonte não verificada" }
         ];
 
+        // Padrões de conteúdo factualmente suspeito
+        this.factualSuspiciousPatterns = [
+            // Pessoas famosas "mortas" que estariam vivas
+            { pattern: /\b(Lázaro|Lazaro).*(não morreu|está vivo|morando|escondido|fugiu)/gi, weight: 0.40, name: "Afirmação sobre pessoa notoriamente morta" },
+            { pattern: /\b(Michael Jackson|Elvis|Ayrton Senna|Cazuza).*(vivo|não morreu|escondido)/gi, weight: 0.35, name: "Celebridade morta supostamente viva" },
+
+            // Eventos históricos negados
+            { pattern: /\b(11 de setembro|holocausto|chegada à lua).*(falso|encenado|não aconteceu|mentira)/gi, weight: 0.30, name: "Negação de eventos históricos" },
+
+            // Afirmações médicas absurdas
+            { pattern: /\b(cura.*(câncer|AIDS|diabetes).*(limão|bicarbonato|água|chá))/gi, weight: 0.35, name: "Cura milagrosa falsa" },
+            { pattern: /\b(médicos.*(escondem|não querem).*(cura|remédio|tratamento))/gi, weight: 0.25, name: "Conspiração médica" },
+
+            // Tecnologia impossível
+            { pattern: /\b(5G.*(mata|controla|chip|corona))/gi, weight: 0.30, name: "Desinformação sobre 5G" },
+            { pattern: /\b(vacina.*(chip|controle|DNA|magnética))/gi, weight: 0.35, name: "Desinformação sobre vacinas" },
+
+            // Políticos e figuras públicas
+            { pattern: /\b(presidente|ministro|governador).*(morreu|preso|renunciou).*(escondido|mídia esconde)/gi, weight: 0.25, name: "Boatos sobre autoridades" },
+
+            // Eventos catastróficos falsos
+            { pattern: /\b(fim do mundo|apocalipse|meteoro|invasão alien).*(2024|2025|próximo|semana)/gi, weight: 0.20, name: "Previsões catastróficas" },
+
+            // Dinheiro fácil/golpes
+            { pattern: /\b(governo.*(pagando|dando|liberou).*(auxílio|dinheiro|benefício).*(WhatsApp|link|cadastro))/gi, weight: 0.30, name: "Golpe financeiro" }
+        ];
+
         // Domínios com diferentes níveis de credibilidade (foco brasileiro)
         this.credibleDomains = {
             // Muito confiáveis (boost +0.25)
@@ -141,8 +168,25 @@ class NewsAnalyzer {
             }
         });
 
+        // Verifica padrões de conteúdo factualmente suspeito
+        let factualSuspiciousScore = 0;
+        analysis.factualIssues = [];
+        this.factualSuspiciousPatterns.forEach(item => {
+            const matches = text.match(item.pattern);
+            if (matches) {
+                analysis.factualIssues.push({
+                    matches: matches,
+                    type: item.name,
+                    weight: item.weight,
+                    count: matches.length
+                });
+                factualSuspiciousScore += item.weight * Math.min(matches.length, 2);
+            }
+        });
+
         analysis.suspiciousScore = Math.min(suspiciousScore, 1.0);
         analysis.credibilityScore = Math.min(credibilityScore, 0.5);
+        analysis.factualSuspiciousScore = Math.min(factualSuspiciousScore, 1.0);
 
         // Análise de linguagem
         analysis.languageAnalysis = {
@@ -208,6 +252,15 @@ class NewsAnalyzer {
         // Aplica penalidades por padrões suspeitos (com pesos específicos)
         if (textAnalysis.suspiciousScore) {
             score -= textAnalysis.suspiciousScore;
+        }
+
+        // PENALIDADE ALTA por conteúdo factualmente suspeito
+        if (textAnalysis.factualSuspiciousScore) {
+            score -= textAnalysis.factualSuspiciousScore;
+            // Penalidade extra para conteúdo factual muito suspeito
+            if (textAnalysis.factualSuspiciousScore > 0.3) {
+                score -= 0.2; // Penalidade adicional
+            }
         }
 
         // Aplica bônus por indicadores de credibilidade
@@ -327,11 +380,20 @@ class NewsAnalyzer {
             recommendation: ""
         };
 
-        // Identifica problemas principais (mais específicos)
+        // Identifica problemas factuais PRIMEIRO (mais graves)
+        if (textAnalysis.factualIssues && textAnalysis.factualIssues.length > 0) {
+            textAnalysis.factualIssues.forEach(item => {
+                if (item.count > 0) {
+                    summary.mainIssues.push(`🚨 CONTEÚDO FACTUAL SUSPEITO: ${item.type}`);
+                }
+            });
+        }
+
+        // Depois problemas linguísticos
         if (textAnalysis.suspiciousPatternsFound && textAnalysis.suspiciousPatternsFound.length > 0) {
             textAnalysis.suspiciousPatternsFound.forEach(item => {
                 if (item.count > 0) {
-                    summary.mainIssues.push(`🚨 ${item.type} (${item.count}x)`);
+                    summary.mainIssues.push(`⚠️ ${item.type} (${item.count}x)`);
                 }
             });
         }
@@ -387,8 +449,10 @@ class NewsAnalyzer {
             summary.positivePoints.push("✅ Texto com conteúdo substancial");
         }
 
-        // Recomendação mais específica baseada no score
-        if (result.credibilityScore >= 0.85) {
+        // Recomendação específica - prioriza problemas factuais
+        if (textAnalysis.factualIssues && textAnalysis.factualIssues.length > 0) {
+            summary.recommendation = "🚨 ALERTA MÁXIMO: Esta notícia contém informações factualmente incorretas ou impossíveis. É muito provável que seja FAKE NEWS. NÃO compartilhe sob nenhuma circunstância.";
+        } else if (result.credibilityScore >= 0.85) {
             summary.recommendation = "✅ Esta notícia apresenta alta credibilidade. Ainda assim, é sempre bom verificar outras fontes.";
         } else if (result.credibilityScore >= 0.70) {
             summary.recommendation = "✅ Notícia com boa credibilidade. Recomenda-se uma verificação adicional em fontes conhecidas.";
