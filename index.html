@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verificador de Notícias - IA Universal</title>
+    <style>
+        * { 
+            margin: 0; 
+            padding: 0; 
+            box-sizing: border-box; 
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+        
+        .content { 
+            padding: 40px; 
+        }
+        
+        .input-section {
+            display: grid;
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+        
+        .input-group {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .input-group label {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+            font-size: 1.1em;
+        }
+        
+        textarea, input[type="url"] { 
+            width: 100%; 
+            padding: 18px; 
+            border: 2px solid #e1e5e9; 
+            border-radius: 12px; 
+            font-size: 16px; 
+            font-family: inherit;
+            transition: all 0.3s ease;
+            background: #fafbfc;
+        }
+        
+        textarea:focus, input[type="url"]:focus {
+            outline: none;
+            border-color: #4facfe;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(79, 172, 254, 0.1);
+        }
+        
+        textarea { 
+            height: 140px; 
+            resize: vertical; 
+        }
+        
+        .verify-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 18px 40px;
+            font-size: 18px;
+            font-weight: 600;
+            border-radius: 50px;
+            cursor: pointer;
+            display: block;
+            margin: 30px auto;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+            min-width: 200px;
+        }
+        
+        .verify-btn:hover { 
+            transform: translateY(-3px);
+            box-shadow: 0 12px 35px rgba(102, 126, 234, 0.4);
+        }
+        
+        .examples {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 15px;
+            padding: 25px;
+            margin: 30px 0;
+            border: 1px solid #dee2e6;
+        }
+        
+        .examples h3 {
+            text-align: center;
+            color: #495057;
+            margin-bottom: 20px;
+            font-size: 1.3em;
+        }
+        
+        .example-category {
+            margin-bottom: 20px;
+        }
+        
+        .example-category h4 {
+            color: #6c757d;
+            margin-bottom: 12px;
+            font-size: 1em;
+            text-align: center;
+        }
+        
+        .example-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        .example-btn {
+            padding: 10px 16px;
+            font-size: 13px;
+            font-weight: 500;
+            border-radius: 25px;
+            border: none;
+            cursor: pointer;
+            color: white;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        
+        .example-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+        }
+        
+        .btn-fake { 
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%); 
+        }
+        
+        .btn-real { 
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%); 
+        }
+        
+        .result {
+            margin-top: 30px;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        
+        .result-true { 
+            background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%); 
+            border-left: 6px solid #28a745; 
+        }
+        
+        .result-false { 
+            background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%); 
+            border-left: 6px solid #dc3545; 
+        }
+        
+        .result-neutral { 
+            background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%); 
+            border-left: 6px solid #ffc107; 
+        }
+        
+        .result h2 {
+            margin-bottom: 20px;
+            font-size: 1.8em;
+        }
+        
+        .score-display {
+            font-size: 4em;
+            font-weight: 700;
+            margin: 25px 0;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .analysis-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+            margin: 25px 0;
+            text-align: left;
+        }
+        
+        .analysis-section h4 {
+            color: #495057;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+            border-bottom: 2px solid #dee2e6;
+            padding-bottom: 8px;
+        }
+        
+        .analysis-section ul {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .analysis-section li {
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+            font-size: 0.95em;
+        }
+        
+        .recommendation {
+            background: rgba(0,0,0,0.05);
+            padding: 20px;
+            border-radius: 12px;
+            margin-top: 25px;
+            border-left: 4px solid #6c757d;
+        }
+        
+        .recommendation h4 {
+            color: #495057;
+            margin-bottom: 12px;
+            font-size: 1.2em;
+        }
+        
+        .recommendation p {
+            color: #6c757d;
+            line-height: 1.7;
+            font-size: 1em;
+        }
+        
+        /* Responsividade */
+        @media (max-width: 768px) {
+            .container {
+                margin: 10px;
+                border-radius: 15px;
+            }
+            
+            .header {
+                padding: 30px 20px;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .content {
+                padding: 25px 20px;
+            }
+            
+            .analysis-details {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .example-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .example-btn {
+                width: 100%;
+                max-width: 200px;
+            }
+            
+            .score-display {
+                font-size: 3em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔍 Verificador de Notícias</h1>
+            <p>IA Universal - Detecta Todas as Fake News</p>
+        </div>
+
+        <div class="content">
+            <div class="input-section">
+                <div class="input-group">
+                    <label>📰 Texto da Notícia</label>
+                    <textarea id="newsText" placeholder="Cole aqui o texto da notícia que deseja verificar..."></textarea>
+                </div>
+
+                <div class="input-group">
+                    <label>🌐 URL da Notícia (opcional)</label>
+                    <input type="url" id="newsUrl" placeholder="https://exemplo.com/noticia">
+                </div>
+            </div>
+
+            <button class="verify-btn" onclick="verifyNews()">🔍 Verificar Notícia</button>
+
+            <div class="examples">
+                <h3>📝 Exemplos para Teste (IA Universal)</h3>
+
+                <div class="example-category">
+                    <h4>🚨 Fake News</h4>
+                    <div class="example-buttons">
+                        <button class="example-btn btn-fake" onclick="loadExample('conspiracy')">🎭 Conspiração</button>
+                        <button class="example-btn btn-fake" onclick="loadExample('medical_fake')">⚕️ Médica</button>
+                        <button class="example-btn btn-fake" onclick="loadExample('clickbait')">🎣 Clickbait</button>
+                        <button class="example-btn btn-fake" onclick="loadExample('political')">🏛️ Política</button>
+                    </div>
+                </div>
+
+                <div class="example-category">
+                    <h4>✅ Notícias Reais</h4>
+                    <div class="example-buttons">
+                        <button class="example-btn btn-real" onclick="loadExample('scientific')">🔬 Científica</button>
+                        <button class="example-btn btn-real" onclick="loadExample('official')">🏛️ Oficial</button>
+                        <button class="example-btn btn-real" onclick="loadExample('academic')">🎓 Acadêmica</button>
+                        <button class="example-btn btn-real" onclick="loadExample('journalism')">📰 Jornalismo</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="result"></div>
+        </div>
+    </div>
+
+    <script>
+        // IA UNIVERSAL PARA DETECTAR TODAS AS FAKE NEWS
+        function analyzeNews(text, url) {
+            let score = 50; // Base neutra
+            const issues = [];
+            const positives = [];
+
+            if (!text && !url) {
+                return { score: 0, issues: ['Nenhum conteúdo fornecido'], positives: [] };
+            }
+
+            const textLower = (text || '').toLowerCase();
+            const originalText = text || '';
+
+            // ===== DETECÇÃO UNIVERSAL DE FAKE NEWS =====
+
+            // 1. PADRÕES DE LINGUAGEM MANIPULATIVA
+            const manipulativePatterns = [
+                { pattern: /\b(urgente|bomba|alerta|atenção).{0,20}(compartilhe|divulgue|espalhe)/gi, penalty: 25, desc: "Urgência + pedido para compartilhar" },
+                { pattern: /\b(mídia|imprensa|jornais?).{0,30}(esconde|omite|não fala|silencia)/gi, penalty: 20, desc: "Teoria conspiratória sobre mídia" },
+                { pattern: /\b(governo|estado|sistema).{0,30}(mente|engana|manipula|controla)/gi, penalty: 18, desc: "Teoria conspiratória sobre governo" },
+                { pattern: /\b(verdade|realidade).{0,20}(que|oculta|escondida|proibida)/gi, penalty: 15, desc: "Alegação de verdade oculta" },
+                { pattern: /\b(antes que|apaguem|censurem|removam|deletem)/gi, penalty: 20, desc: "Senso de urgência por censura" },
+                { pattern: /\b(eles|elite|poderosos).{0,20}(não querem|escondem|controlam)/gi, penalty: 18, desc: "Teoria conspiratória genérica" }
+            ];
+
+            manipulativePatterns.forEach(item => {
+                const matches = originalText.match(item.pattern);
+                if (matches) {
+                    score -= item.penalty;
+                    issues.push(`🎭 MANIPULAÇÃO: ${item.desc} (${matches.length}x)`);
+                }
+            });
+
+            // 2. NÚMEROS E ESTATÍSTICAS SUSPEITAS
+            const suspiciousNumbers = [
+                { pattern: /\b(9[5-9]|100)% dos? (médicos?|cientistas?|especialistas?)/gi, penalty: 30, desc: "Consenso impossível de profissionais" },
+                { pattern: /\b(milhões?|bilhões?).{0,20}(morr|mort|óbit)/gi, penalty: 25, desc: "Números de mortes exagerados" },
+                { pattern: /\b([2-9]\d{2,}|[1-9]\d{3,})%.{0,20}(aumento|crescimento|mais)/gi, penalty: 20, desc: "Porcentagens matematicamente impossíveis" },
+                { pattern: /\b(zero|0).{0,10}(casos?|mortes?|problemas?)/gi, penalty: 15, desc: "Alegação de zero casos suspeita" },
+                { pattern: /\b(todos?|100%).{0,20}(médicos?|cientistas?).{0,20}(concordam|dizem)/gi, penalty: 25, desc: "Unanimidade impossível" }
+            ];
+
+            suspiciousNumbers.forEach(item => {
+                const matches = originalText.match(item.pattern);
+                if (matches) {
+                    score -= item.penalty;
+                    issues.push(`📊 NÚMEROS SUSPEITOS: ${item.desc}`);
+                }
+            });
+
+            // 3. ALEGAÇÕES MÉDICAS/CIENTÍFICAS PERIGOSAS
+            const medicalClaims = [
+                { pattern: /\b(cura|curar).{0,30}(câncer|aids|diabetes|covid)/gi, penalty: 35, desc: "Alegação de cura milagrosa" },
+                { pattern: /\b(vacinas?).{0,30}(mata|matam|causam|provocam).{0,20}(autismo|morte|doença)/gi, penalty: 40, desc: "Desinformação sobre vacinas" },
+                { pattern: /\b(remédio|tratamento|medicamento).{0,20}(caseiro|natural|simples).{0,20}(cura|resolve)/gi, penalty: 25, desc: "Tratamento caseiro milagroso" },
+                { pattern: /\b(médicos?|indústria farmacêutica).{0,30}(escondem|omitem|não querem)/gi, penalty: 20, desc: "Conspiração médica" },
+                { pattern: /\b(5g|wifi|microondas).{0,30}(causa|provoca|mata)/gi, penalty: 30, desc: "Desinformação sobre tecnologia" }
+            ];
+
+            medicalClaims.forEach(item => {
+                const matches = originalText.match(item.pattern);
+                if (matches) {
+                    score -= item.penalty;
+                    issues.push(`⚕️ DESINFORMAÇÃO MÉDICA: ${item.desc}`);
+                }
+            });
+
+            // Continua na próxima parte...
+            return analyzeNewsPartTwo(score, issues, positives, textLower, originalText, url);
+        }
+
+        // Continuação da análise
+        function analyzeNewsPartTwo(score, issues, positives, textLower, originalText, url) {
+            // 4. EVENTOS HISTÓRICOS E PESSOAS MORTAS
+            const historicalFacts = [
+                { pattern: /\b(lázaro|lazaro).{0,30}(não morreu|está vivo|foi visto|morando)/gi, penalty: 45, desc: "Lázaro Barbosa (morreu em 2021)" },
+                { pattern: /\b(michael jackson).{0,30}(vivo|não morreu|fingiu)/gi, penalty: 35, desc: "Michael Jackson (morreu em 2009)" },
+                { pattern: /\b(elvis).{0,30}(vivo|não morreu|fingiu)/gi, penalty: 35, desc: "Elvis Presley (morreu em 1977)" },
+                { pattern: /\b(ayrton senna).{0,30}(vivo|não morreu|sobreviveu)/gi, penalty: 35, desc: "Ayrton Senna (morreu em 1994)" }
+            ];
+
+            historicalFacts.forEach(item => {
+                const matches = originalText.match(item.pattern);
+                if (matches) {
+                    score -= item.penalty;
+                    issues.push(`📚 FATO HISTÓRICO NEGADO: ${item.desc}`);
+                }
+            });
+
+            // 5. LINGUAGEM EMOCIONAL EXTREMA
+            const emotionalWords = ['ódio', 'raiva', 'terror', 'pânico', 'absurdo', 'inaceitável'];
+            const emotionalCount = emotionalWords.filter(word => textLower.includes(word)).length;
+            if (emotionalCount >= 2) {
+                score -= 15;
+                issues.push(`😠 LINGUAGEM EMOCIONAL: ${emotionalCount} palavras extremas`);
+            }
+
+            // 6. PADRÕES DE CLICKBAIT
+            if (/\b(você não vai acreditar|médicos odeiam)/gi.test(originalText)) {
+                score -= 20;
+                issues.push('🎣 CLICKBAIT: Padrão de clickbait detectado');
+            }
+
+            // 7. DESINFORMAÇÃO POLÍTICA
+            if (/\b(urna|eleição).{0,30}(fraude|fraudada)/gi.test(originalText)) {
+                score -= 30;
+                issues.push('🏛️ DESINFORMAÇÃO POLÍTICA: Alegação de fraude eleitoral');
+            }
+
+            // 8. FONTES DUVIDOSAS
+            if (/\b(meu primo|minha tia|ouvi dizer|me contaram)/gi.test(originalText)) {
+                score -= 20;
+                issues.push('📱 FONTE DUVIDOSA: Informação não verificável');
+            }
+
+            // ===== DETECÇÃO DE CREDIBILIDADE =====
+
+            // 1. FONTES ACADÊMICAS
+            const academicWords = ['universidade', 'usp', 'professor', 'doutor', 'pesquisa', 'estudo'];
+            academicWords.forEach(word => {
+                if (textLower.includes(word)) {
+                    score += 20;
+                    positives.push(`🎓 FONTE ACADÊMICA: ${word}`);
+                }
+            });
+
+            // 2. INSTITUIÇÕES OFICIAIS
+            const officialWords = ['ministério', 'anvisa', 'fiocruz', 'who', 'oms'];
+            officialWords.forEach(word => {
+                if (textLower.includes(word)) {
+                    score += 25;
+                    positives.push(`🏛️ INSTITUIÇÃO OFICIAL: ${word}`);
+                }
+            });
+
+            // 3. LINGUAGEM CIENTÍFICA
+            if (/\b(segundo|conforme|dados mostram|evidência)/gi.test(originalText)) {
+                score += 15;
+                positives.push('🔬 LINGUAGEM CIENTÍFICA: Baseado em evidências');
+            }
+
+            // 4. ANÁLISE DE URL
+            if (url) {
+                const urlLower = url.toLowerCase();
+                const trustedDomains = ['usp.br', 'nature.com', 'bbc.com', 'reuters.com', 'g1.globo.com'];
+                trustedDomains.forEach(domain => {
+                    if (urlLower.includes(domain)) {
+                        score += 30;
+                        positives.push(`✅ FONTE CONFIÁVEL: ${domain}`);
+                    }
+                });
+            }
+
+            // Normaliza score
+            score = Math.max(0, Math.min(100, score));
+
+            return { score, issues, positives };
+        }
+
+        // Função principal de verificação
+        function verifyNews() {
+            const text = document.getElementById('newsText').value.trim();
+            const url = document.getElementById('newsUrl').value.trim();
+            const resultDiv = document.getElementById('result');
+
+            if (!text && !url) {
+                alert('Por favor, insira o texto da notícia ou uma URL');
+                return;
+            }
+
+            try {
+                const analysis = analyzeNews(text, url);
+                displayResult(analysis);
+            } catch (error) {
+                console.error('Erro:', error);
+                resultDiv.innerHTML = `
+                    <div class="result result-false">
+                        <h3>❌ Erro na Verificação</h3>
+                        <p>Ocorreu um erro ao analisar a notícia. Tente novamente.</p>
+                    </div>
+                `;
+            }
+        }
+
+        // Exibe os resultados
+        function displayResult(analysis) {
+            const resultDiv = document.getElementById('result');
+            const score = analysis.score;
+
+            let resultClass, scoreColor, icon, status;
+            if (score < 30) {
+                resultClass = 'result-false';
+                scoreColor = '#dc3545';
+                icon = '❌';
+                status = 'Possivelmente FALSA';
+            } else if (score >= 70) {
+                resultClass = 'result-true';
+                scoreColor = '#28a745';
+                icon = '✅';
+                status = 'Provavelmente VERDADEIRA';
+            } else {
+                resultClass = 'result-neutral';
+                scoreColor = '#ffc107';
+                icon = '⚠️';
+                status = 'Credibilidade Moderada';
+            }
+
+            const issues = analysis.issues.length > 0
+                ? analysis.issues.map(issue => `<li>${issue}</li>`).join('')
+                : '<li>✅ Nenhum problema detectado</li>';
+
+            const positives = analysis.positives.length > 0
+                ? analysis.positives.map(point => `<li>${point}</li>`).join('')
+                : '<li>ℹ️ Nenhum ponto positivo identificado</li>';
+
+            resultDiv.innerHTML = `
+                <div class="result ${resultClass}">
+                    <div style="text-align: center;">
+                        <h2>${icon} ${status}</h2>
+                        <div class="score-display" style="color: ${scoreColor};">${score}%</div>
+                    </div>
+
+                    <div class="analysis-details">
+                        <div class="analysis-section">
+                            <h4>🚨 Problemas Detectados</h4>
+                            <ul>${issues}</ul>
+                        </div>
+
+                        <div class="analysis-section">
+                            <h4>✅ Pontos Positivos</h4>
+                            <ul>${positives}</ul>
+                        </div>
+                    </div>
+
+                    <div class="recommendation">
+                        <h4>💡 Recomendação</h4>
+                        <p>${getRecommendation(score)}</p>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Recomendações baseadas no score
+        function getRecommendation(score) {
+            if (score < 20) {
+                return "🚨 ALERTA MÁXIMO: Esta notícia apresenta características típicas de fake news. NÃO compartilhe. Verifique em fact-checkers como Lupa, Aos Fatos ou E-Farsas antes de acreditar.";
+            } else if (score < 40) {
+                return "⚠️ CUIDADO: Esta notícia contém elementos suspeitos. Verifique a informação em pelo menos 3 fontes confiáveis diferentes antes de compartilhar.";
+            } else if (score < 60) {
+                return "🤔 MODERADA: Esta notícia tem credibilidade moderada. Recomenda-se buscar confirmação em fontes oficiais ou veículos de imprensa estabelecidos.";
+            } else if (score < 80) {
+                return "👍 BOA: Esta notícia parece confiável, mas sempre pratique o hábito de verificar informações em múltiplas fontes antes de compartilhar.";
+            } else {
+                return "✅ EXCELENTE: Esta notícia apresenta características de alta credibilidade, com fontes confiáveis e linguagem técnica apropriada.";
+            }
+        }
+
+        // Carrega exemplos
+        function loadExample(type) {
+            const textArea = document.getElementById('newsText');
+            const urlInput = document.getElementById('newsUrl');
+
+            // EXEMPLOS DE FAKE NEWS
+            if (type === 'conspiracy') {
+                textArea.value = "URGENTE!!! A MÍDIA ESCONDE A VERDADE! O governo mente para vocês! Eles não querem que você saiba disso! COMPARTILHE ANTES QUE APAGUEM! A elite mundial controla tudo e vocês são apenas fantoches! Meu primo que trabalha no governo me contou isso!";
+                urlInput.value = "";
+            } else if (type === 'medical_fake') {
+                textArea.value = "MÉDICOS ODEIAM ESTE TRUQUE SIMPLES! Cura para o câncer descoberta por mulher de 60 anos! 100% dos pacientes foram curados em apenas 3 dias! A indústria farmacêutica não quer que você saiba! Receita caseira que resolve tudo!";
+                urlInput.value = "";
+            } else if (type === 'clickbait') {
+                textArea.value = "VOCÊ NÃO VAI ACREDITAR NO QUE ACONTECEU! O que este homem descobriu vai CHOCAR você! Médicos ficaram HORRORIZADOS com esta descoberta! Clique aqui para saber o SEGREDO que a indústria esconde!";
+                urlInput.value = "";
+            } else if (type === 'political') {
+                textArea.value = "BOMBA! Urnas eletrônicas foram fraudadas! 99% dos técnicos confirmam manipulação! O sistema está contra o povo! Ditadura do judiciário instalada! Compartilhe esta verdade que eles querem esconder!";
+                urlInput.value = "";
+
+            // EXEMPLOS DE NOTÍCIAS REAIS
+            } else if (type === 'scientific') {
+                textArea.value = "Pesquisadores da Universidade de São Paulo, em colaboração com o MIT, publicaram na revista Nature um estudo sobre novo tratamento para diabetes tipo 2. A pesquisa, conduzida pelo Dr. João Silva com metodologia duplo-cego e grupo controle de 500 pacientes, demonstrou eficácia estatisticamente significativa. O estudo está disponível em doi:10.1038/nature2024.";
+                urlInput.value = "https://nature.com/articles/diabetes-treatment-2024";
+            } else if (type === 'official') {
+                textArea.value = "O Ministério da Saúde, em parceria com a Anvisa e Fiocruz, divulgou hoje o relatório oficial sobre a campanha de vacinação. Segundo dados do IBGE, foram aplicadas 2,3 milhões de doses na última semana. A declaração oficial foi feita pelo ministro durante entrevista coletiva.";
+                urlInput.value = "https://gov.br/saude/vacinacao-relatorio-2024";
+            } else if (type === 'academic') {
+                textArea.value = "Estudo peer-reviewed conduzido pela Unicamp e publicado no The Lancet analisou 1.200 casos durante 18 meses. A metodologia incluiu meta-análise de ensaios clínicos randomizados. 'Os resultados são estatisticamente significativos', declarou a Dra. Maria Santos, professora titular e coordenadora da pesquisa. Conflitos de interesse: nenhum declarado.";
+                urlInput.value = "https://unicamp.br/pesquisa/lancet-2024";
+            } else if (type === 'journalism') {
+                textArea.value = "Reportagem da BBC, baseada em entrevistas exclusivas com especialistas da OMS e dados oficiais do CDC, revela tendências na saúde pública global. O jornalista investigativo John Smith, ganhador do Prêmio Pulitzer, conduziu a investigação durante 6 meses. Fontes foram verificadas de forma independente.";
+                urlInput.value = "https://bbc.com/health/global-trends-2024";
+            }
+        }
+
+        // Permite verificar com Enter
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && e.ctrlKey) {
+                verifyNews();
+            }
+        });
+
+        console.log('✅ Verificador de Notícias - IA Universal carregado');
+    </script>
+</body>
+</html>
