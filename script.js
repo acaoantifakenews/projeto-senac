@@ -61,8 +61,9 @@ function displayResult(result) {
         scoreColor = '#ffc107';
     }
 
-    // Salva no histórico
+    // Salva no histórico e estatísticas
     saveToHistory(result);
+    saveStats(result);
     
     const mainIssuesHtml = summary.mainIssues.length > 0 
         ? summary.mainIssues.map(issue => `<li>${issue}</li>`).join('')
@@ -111,6 +112,15 @@ function displayResult(result) {
                 <strong>Confiança da análise:</strong> ${summary.confidenceLevel}
                 ${result.sourcesChecked.length > 0 ? ` | <strong>Fontes verificadas:</strong> ${result.sourcesChecked.length}` : ''}
             </div>
+
+            ${result.externalVerification && result.externalVerification.recommendations.length > 0 ? `
+                <div style="background: rgba(23, 162, 184, 0.1); padding: 15px; border-radius: 8px; margin-top: 15px; border-left: 4px solid #17a2b8;">
+                    <h4 style="color: #17a2b8; margin-bottom: 10px;">🔍 Verificação Externa</h4>
+                    <ul style="margin: 0; padding-left: 20px;">
+                        ${result.externalVerification.recommendations.map(rec => `<li style="margin-bottom: 5px;">${rec}</li>`).join('')}
+                    </ul>
+                </div>
+            ` : ''}
         </div>
     `;
 
@@ -212,6 +222,12 @@ function loadExample(type) {
     } else if (type === 'numerical_fake') {
         textArea.value = "INACREDITÁVEL! 99% dos médicos concordam que este remédio cura câncer em apenas 2 dias! 500% mais eficaz que quimioterapia! Ontem 2 milhões de pessoas foram curadas! 100% garantido ou seu dinheiro de volta!";
         urlInput.value = "";
+    } else if (type === 'sentiment_fake') {
+        textArea.value = "Que ÓDIO! Estou com muita RAIVA dessa situação ABSURDA e INACEITÁVEL! Que TERROR e PÂNICO! Isso é ATERRORIZANTE e muito PERIGOSO! Não aguento mais essa REVOLTA! Me irrita profundamente!";
+        urlInput.value = "";
+    } else if (type === 'external_check') {
+        textArea.value = "Notícia verificada por fact-checkers independentes.";
+        urlInput.value = "https://lupa.uol.com.br/jornalismo/2024/01/15/verificacao-exemplo";
     }
 }
 
@@ -223,21 +239,21 @@ document.addEventListener('DOMContentLoaded', function() {
     examplesDiv.innerHTML = `
         <div style="text-align: center; margin: 20px 0; padding: 15px; background: #f8f9fa; border-radius: 10px;">
             <p style="margin-bottom: 15px; color: #666;"><strong>📝 Exemplos para teste (diferentes scores):</strong></p>
-            <div style="margin-bottom: 8px;">
-                <button onclick="loadExample('fake')" style="margin: 2px; padding: 6px 8px; background: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 10px;">🚨 Fake Global</button>
-                <button onclick="loadExample('brazilian_fake')" style="margin: 2px; padding: 6px 8px; background: #8b0000; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 10px;">🇧🇷 Fake Brasil</button>
-                <button onclick="loadExample('factual_fake')" style="margin: 2px; padding: 6px 8px; background: #4a0e0e; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 10px;">💀 Fake Factual</button>
-                <button onclick="loadExample('numerical_fake')" style="margin: 2px; padding: 6px 8px; background: #6f0000; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 10px;">📊 Fake Numérica</button>
+            <div style="margin-bottom: 6px;">
+                <button onclick="loadExample('fake')" style="margin: 1px; padding: 5px 7px; background: #dc3545; color: white; border: none; border-radius: 3px; cursor: pointer; font-size: 9px;">🚨 Fake Global</button>
+                <button onclick="loadExample('brazilian_fake')" style="margin: 1px; padding: 5px 7px; background: #8b0000; color: white; border: none; border-radius: 3px; cursor: pointer; font-size: 9px;">🇧🇷 Fake Brasil</button>
+                <button onclick="loadExample('factual_fake')" style="margin: 1px; padding: 5px 7px; background: #4a0e0e; color: white; border: none; border-radius: 3px; cursor: pointer; font-size: 9px;">💀 Factual</button>
+                <button onclick="loadExample('numerical_fake')" style="margin: 1px; padding: 5px 7px; background: #6f0000; color: white; border: none; border-radius: 3px; cursor: pointer; font-size: 9px;">📊 Numérica</button>
+                <button onclick="loadExample('sentiment_fake')" style="margin: 1px; padding: 5px 7px; background: #800020; color: white; border: none; border-radius: 3px; cursor: pointer; font-size: 9px;">😠 Sentimento</button>
             </div>
-            <div style="margin-bottom: 8px;">
-                <button onclick="loadExample('suspicious')" style="margin: 2px; padding: 6px 8px; background: #fd7e14; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 10px;">⚠️ Suspeita</button>
-                <button onclick="loadExample('moderate')" style="margin: 2px; padding: 6px 8px; background: #ffc107; color: black; border: none; border-radius: 4px; cursor: pointer; font-size: 10px;">📰 Moderada</button>
-                <button onclick="loadExample('real')" style="margin: 2px; padding: 6px 8px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 10px;">✅ Confiável</button>
-                <button onclick="loadExample('scientific')" style="margin: 2px; padding: 6px 8px; background: #20c997; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 10px;">🔬 Científica</button>
-                <button onclick="loadExample('url')" style="margin: 2px; padding: 6px 8px; background: #17a2b8; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 10px;">🌐 G1</button>
-                <button onclick="loadExample('credible_url')" style="margin: 2px; padding: 6px 8px; background: #6f42c1; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 10px;">🌐 BBC</button>
+            <div style="margin-bottom: 6px;">
+                <button onclick="loadExample('suspicious')" style="margin: 1px; padding: 5px 7px; background: #fd7e14; color: white; border: none; border-radius: 3px; cursor: pointer; font-size: 9px;">⚠️ Suspeita</button>
+                <button onclick="loadExample('moderate')" style="margin: 1px; padding: 5px 7px; background: #ffc107; color: black; border: none; border-radius: 3px; cursor: pointer; font-size: 9px;">📰 Moderada</button>
+                <button onclick="loadExample('real')" style="margin: 1px; padding: 5px 7px; background: #28a745; color: white; border: none; border-radius: 3px; cursor: pointer; font-size: 9px;">✅ Confiável</button>
+                <button onclick="loadExample('scientific')" style="margin: 1px; padding: 5px 7px; background: #20c997; color: white; border: none; border-radius: 3px; cursor: pointer; font-size: 9px;">🔬 Científica</button>
+                <button onclick="loadExample('external_check')" style="margin: 1px; padding: 5px 7px; background: #17a2b8; color: white; border: none; border-radius: 3px; cursor: pointer; font-size: 9px;">🔍 Externa</button>
             </div>
-            <p style="margin-top: 10px; font-size: 11px; color: #888;">💡 Sistema completo: Gráfico animado + Histórico + Detecção numérica</p>
+            <p style="margin-top: 8px; font-size: 10px; color: #888;">💡 Sistema completo: Dashboard + Temas + Comparação + Sentimento + Verificação Externa</p>
         </div>
     `;
     
@@ -389,9 +405,270 @@ function clearHistory() {
     }
 }
 
+// Sistema de Estatísticas
+function updateStats() {
+    try {
+        const stats = JSON.parse(localStorage.getItem('newsStats') || '{}');
+        const today = new Date().toDateString();
+
+        if (!stats.totalVerifications) stats.totalVerifications = 0;
+        if (!stats.fakeNewsDetected) stats.fakeNewsDetected = 0;
+        if (!stats.realNewsDetected) stats.realNewsDetected = 0;
+        if (!stats.timesSaved) stats.timesSaved = 0;
+        if (!stats.dailyStats) stats.dailyStats = {};
+
+        return stats;
+    } catch (e) {
+        return {
+            totalVerifications: 0,
+            fakeNewsDetected: 0,
+            realNewsDetected: 0,
+            timesSaved: 0,
+            dailyStats: {}
+        };
+    }
+}
+
+function saveStats(result) {
+    try {
+        const stats = updateStats();
+        const today = new Date().toDateString();
+
+        stats.totalVerifications++;
+        if (result.isLikelyFake) {
+            stats.fakeNewsDetected++;
+        } else {
+            stats.realNewsDetected++;
+        }
+        stats.timesSaved += 0.1; // Estima 6 minutos economizados por verificação
+
+        if (!stats.dailyStats[today]) {
+            stats.dailyStats[today] = 0;
+        }
+        stats.dailyStats[today]++;
+
+        localStorage.setItem('newsStats', JSON.stringify(stats));
+        displayStats();
+    } catch (e) {
+        console.log('Erro ao salvar estatísticas:', e);
+    }
+}
+
+function displayStats() {
+    const stats = updateStats();
+    const statsGrid = document.getElementById('statsGrid');
+
+    if (!statsGrid) return;
+
+    const fakePercentage = stats.totalVerifications > 0
+        ? Math.round((stats.fakeNewsDetected / stats.totalVerifications) * 100)
+        : 0;
+
+    statsGrid.innerHTML = `
+        <div class="stat-card total">
+            <div class="stat-number" style="color: #007bff;">${stats.totalVerifications}</div>
+            <div class="stat-label">Notícias Verificadas</div>
+        </div>
+        <div class="stat-card fake">
+            <div class="stat-number" style="color: #dc3545;">${fakePercentage}%</div>
+            <div class="stat-label">Fake News Detectadas</div>
+        </div>
+        <div class="stat-card real">
+            <div class="stat-number" style="color: #28a745;">${stats.realNewsDetected}</div>
+            <div class="stat-label">Notícias Confiáveis</div>
+        </div>
+        <div class="stat-card time">
+            <div class="stat-number" style="color: #ffc107;">${stats.timesSaved.toFixed(1)}h</div>
+            <div class="stat-label">Tempo Economizado</div>
+        </div>
+    `;
+}
+
+function toggleStats() {
+    const statsSection = document.getElementById('statsSection');
+    const isVisible = statsSection.style.display !== 'none';
+
+    // Esconde outras seções
+    document.getElementById('themeSelector').style.display = 'none';
+    document.getElementById('comparisonSection').style.display = 'none';
+
+    if (isVisible) {
+        statsSection.style.display = 'none';
+    } else {
+        statsSection.style.display = 'block';
+        displayStats();
+    }
+}
+
+// Sistema de Temas
+function toggleThemeSelector() {
+    const themeSelector = document.getElementById('themeSelector');
+    const isVisible = themeSelector.style.display !== 'none';
+
+    // Esconde outras seções
+    document.getElementById('statsSection').style.display = 'none';
+    document.getElementById('comparisonSection').style.display = 'none';
+
+    if (isVisible) {
+        themeSelector.style.display = 'none';
+    } else {
+        themeSelector.style.display = 'block';
+        updateThemeSelector();
+    }
+}
+
+function setTheme(themeName) {
+    const body = document.body;
+
+    // Remove todos os temas
+    body.classList.remove('theme-default', 'theme-professional', 'theme-nature', 'theme-neon');
+
+    // Adiciona o novo tema
+    if (themeName !== 'default') {
+        body.classList.add(`theme-${themeName}`);
+    }
+
+    // Salva a preferência
+    localStorage.setItem('selectedTheme', themeName);
+
+    // Atualiza o seletor
+    updateThemeSelector();
+}
+
+function updateThemeSelector() {
+    const currentTheme = localStorage.getItem('selectedTheme') || 'default';
+    const options = document.querySelectorAll('.theme-option');
+
+    options.forEach(option => {
+        option.classList.remove('active');
+        if (option.dataset.theme === currentTheme) {
+            option.classList.add('active');
+        }
+    });
+}
+
+function loadSavedTheme() {
+    const savedTheme = localStorage.getItem('selectedTheme') || 'default';
+    setTheme(savedTheme);
+}
+
+// Sistema de Comparação
+function toggleComparison() {
+    const comparisonSection = document.getElementById('comparisonSection');
+    const isVisible = comparisonSection.style.display !== 'none';
+
+    // Esconde outras seções
+    document.getElementById('statsSection').style.display = 'none';
+    document.getElementById('themeSelector').style.display = 'none';
+
+    if (isVisible) {
+        comparisonSection.style.display = 'none';
+    } else {
+        comparisonSection.style.display = 'block';
+    }
+}
+
+function compareNews() {
+    const textA = document.getElementById('newsTextA').value.trim();
+    const textB = document.getElementById('newsTextB').value.trim();
+
+    if (!textA || !textB) {
+        alert('Por favor, insira texto nas duas notícias para comparar');
+        return;
+    }
+
+    try {
+        const resultA = newsAnalyzer.verifyNews(textA);
+        const resultB = newsAnalyzer.verifyNews(textB);
+
+        displayComparisonResult('A', resultA);
+        displayComparisonResult('B', resultB);
+
+        // Mostra qual é melhor
+        showComparisonSummary(resultA, resultB);
+
+    } catch (error) {
+        console.error('Erro na comparação:', error);
+        alert('Erro ao comparar as notícias');
+    }
+}
+
+function displayComparisonResult(side, result) {
+    const resultDiv = document.getElementById(`result${side}`);
+    const score = Math.round(result.credibilityScore * 100);
+
+    let color, icon, status;
+    if (result.isLikelyFake) {
+        color = '#dc3545';
+        icon = '❌';
+        status = 'Possivelmente FALSA';
+    } else if (score >= 70) {
+        color = '#28a745';
+        icon = '✅';
+        status = 'Provavelmente VERDADEIRA';
+    } else {
+        color = '#ffc107';
+        icon = '⚠️';
+        status = 'Credibilidade Moderada';
+    }
+
+    resultDiv.innerHTML = `
+        <div style="text-align: center; padding: 15px; border: 2px solid ${color}; border-radius: 8px;">
+            <div style="font-size: 1.5em; margin-bottom: 10px;">${icon}</div>
+            <div style="font-weight: bold; color: ${color}; margin-bottom: 5px;">${score}%</div>
+            <div style="font-size: 0.9em; color: #666;">${status}</div>
+        </div>
+    `;
+    resultDiv.classList.add('has-result');
+}
+
+function showComparisonSummary(resultA, resultB) {
+    const scoreA = Math.round(resultA.credibilityScore * 100);
+    const scoreB = Math.round(resultB.credibilityScore * 100);
+
+    let winner, message;
+    if (scoreA > scoreB) {
+        winner = 'A';
+        message = `Notícia A é mais confiável (${scoreA}% vs ${scoreB}%)`;
+    } else if (scoreB > scoreA) {
+        winner = 'B';
+        message = `Notícia B é mais confiável (${scoreB}% vs ${scoreA}%)`;
+    } else {
+        winner = 'empate';
+        message = `Ambas têm credibilidade similar (${scoreA}%)`;
+    }
+
+    // Adiciona resumo visual
+    setTimeout(() => {
+        const container = document.querySelector('.comparison-container');
+        const existingSummary = container.querySelector('.comparison-summary');
+        if (existingSummary) {
+            existingSummary.remove();
+        }
+
+        const summary = document.createElement('div');
+        summary.className = 'comparison-summary';
+        summary.style.cssText = `
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 10px;
+            margin-top: 20px;
+            font-weight: bold;
+        `;
+        summary.innerHTML = `🏆 ${message}`;
+
+        container.appendChild(summary);
+    }, 500);
+}
+
 // Chama funções quando a página carrega
 document.addEventListener('DOMContentLoaded', function() {
     loadTheme();
+    loadSavedTheme();
     updateHistoryDisplay();
+    displayStats();
     trackUsage('page_load');
 });

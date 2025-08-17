@@ -91,6 +91,42 @@ class NewsAnalyzer {
             { pattern: /\b(100% (eficaz|garantido|funciona)|nunca falha|sempre funciona)/gi, weight: 0.18, name: "Eficácia impossível" }
         ];
 
+        // Análise de sentimento
+        this.sentimentPatterns = {
+            anger: {
+                patterns: [
+                    /\b(ódio|raiva|revolta|indignação|absurdo|inaceitável)/gi,
+                    /\b(não aguento|estou farto|que raiva|me irrita)/gi
+                ],
+                weight: 0.15,
+                name: "Linguagem de raiva/ódio"
+            },
+            fear: {
+                patterns: [
+                    /\b(medo|terror|pânico|assustador|aterrorizante|perigoso)/gi,
+                    /\b(cuidado|atenção|alerta|risco|ameaça)/gi
+                ],
+                weight: 0.12,
+                name: "Linguagem de medo/pânico"
+            },
+            excitement: {
+                patterns: [
+                    /\b(incrível|fantástico|maravilhoso|espetacular|sensacional)/gi,
+                    /\b(revolucionário|milagroso|extraordinário|surpreendente)/gi
+                ],
+                weight: 0.10,
+                name: "Linguagem excessivamente positiva"
+            },
+            urgency: {
+                patterns: [
+                    /\b(agora|já|imediatamente|rapidamente|depressa)/gi,
+                    /\b(não perca|última chance|por tempo limitado)/gi
+                ],
+                weight: 0.08,
+                name: "Senso de urgência artificial"
+            }
+        };
+
         // Domínios com diferentes níveis de credibilidade (foco brasileiro)
         this.credibleDomains = {
             // Muito confiáveis (boost +0.25)
@@ -224,10 +260,37 @@ class NewsAnalyzer {
             }
         });
 
+        // Análise de sentimento
+        let sentimentScore = 0;
+        analysis.sentimentAnalysis = {};
+
+        Object.keys(this.sentimentPatterns).forEach(emotion => {
+            const emotionData = this.sentimentPatterns[emotion];
+            let emotionMatches = [];
+
+            emotionData.patterns.forEach(pattern => {
+                const matches = text.match(pattern);
+                if (matches) {
+                    emotionMatches.push(...matches);
+                }
+            });
+
+            if (emotionMatches.length > 0) {
+                analysis.sentimentAnalysis[emotion] = {
+                    matches: emotionMatches,
+                    count: emotionMatches.length,
+                    weight: emotionData.weight,
+                    name: emotionData.name
+                };
+                sentimentScore += emotionData.weight * Math.min(emotionMatches.length, 3);
+            }
+        });
+
         analysis.suspiciousScore = Math.min(suspiciousScore, 1.0);
         analysis.credibilityScore = Math.min(credibilityScore, 0.5);
         analysis.factualSuspiciousScore = Math.min(factualSuspiciousScore, 1.0);
         analysis.numericalSuspiciousScore = Math.min(numericalSuspiciousScore, 1.0);
+        analysis.sentimentScore = Math.min(sentimentScore, 0.8);
 
         // Análise de linguagem
         analysis.languageAnalysis = {
@@ -310,6 +373,15 @@ class NewsAnalyzer {
             // Penalidade extra para números muito suspeitos
             if (textAnalysis.numericalSuspiciousScore > 0.25) {
                 score -= 0.15; // Penalidade adicional
+            }
+        }
+
+        // PENALIDADE por sentimento suspeito
+        if (textAnalysis.sentimentScore) {
+            score -= textAnalysis.sentimentScore;
+            // Penalidade extra para sentimento muito carregado
+            if (textAnalysis.sentimentScore > 0.3) {
+                score -= 0.1; // Penalidade adicional
             }
         }
 
@@ -417,7 +489,52 @@ class NewsAnalyzer {
         // Cria resumo simplificado para o usuário
         result.summary = this.createUserSummary(result, textAnalysis, urlAnalysis);
 
+        // Verificação externa básica (simulada)
+        result.externalVerification = this.performExternalCheck(text, url);
+
         return result;
+    }
+
+    performExternalCheck(text, url) {
+        const externalCheck = {
+            googleFactCheck: false,
+            newsSourceCheck: false,
+            socialMediaCheck: false,
+            recommendations: []
+        };
+
+        // Simula verificação do Google Fact Check
+        if (text) {
+            const suspiciousKeywords = ['bomba', 'urgente', 'compartilhe', 'mídia esconde'];
+            const hasSuspiciousKeywords = suspiciousKeywords.some(keyword =>
+                text.toLowerCase().includes(keyword)
+            );
+
+            if (hasSuspiciousKeywords) {
+                externalCheck.recommendations.push("⚠️ Recomenda-se verificar em fact-checkers como Agência Lupa ou Aos Fatos");
+            }
+        }
+
+        // Simula verificação de fonte
+        if (url) {
+            try {
+                const domain = new URL(url).hostname.toLowerCase();
+                const knownFactCheckers = ['lupa.uol.com.br', 'aosfatos.org', 'e-farsas.com'];
+
+                if (knownFactCheckers.some(checker => domain.includes(checker))) {
+                    externalCheck.newsSourceCheck = true;
+                    externalCheck.recommendations.push("✅ Esta fonte é conhecida por fact-checking");
+                }
+            } catch (e) {
+                // URL inválida
+            }
+        }
+
+        // Recomendações gerais
+        externalCheck.recommendations.push("💡 Sempre verifique em múltiplas fontes antes de compartilhar");
+        externalCheck.recommendations.push("🔍 Consulte sites como Snopes.com para verificação internacional");
+
+        return externalCheck;
     }
 
     createUserSummary(result, textAnalysis, urlAnalysis) {
@@ -444,6 +561,16 @@ class NewsAnalyzer {
             textAnalysis.numericalIssues.forEach(item => {
                 if (item.count > 0) {
                     summary.mainIssues.push(`📊 NÚMEROS SUSPEITOS: ${item.type}`);
+                }
+            });
+        }
+
+        // Problemas de sentimento
+        if (textAnalysis.sentimentAnalysis) {
+            Object.keys(textAnalysis.sentimentAnalysis).forEach(emotion => {
+                const emotionData = textAnalysis.sentimentAnalysis[emotion];
+                if (emotionData.count > 0) {
+                    summary.mainIssues.push(`😠 SENTIMENTO SUSPEITO: ${emotionData.name} (${emotionData.count}x)`);
                 }
             });
         }

@@ -14,6 +14,12 @@
                 <button class="theme-toggle" onclick="toggleTheme()" title="Alternar tema">
                     <span id="theme-icon">🌙</span>
                 </button>
+                <button class="theme-toggle" onclick="toggleStats()" title="Estatísticas" style="margin-left: 10px;">
+                    📊
+                </button>
+                <button class="theme-toggle" onclick="toggleThemeSelector()" title="Temas" style="margin-left: 10px;">
+                    🎨
+                </button>
             </div>
             <h1>🔍 Verificador de Notícias</h1>
             <p>Detecte fake news com inteligência artificial</p>
@@ -45,6 +51,12 @@
                 <button class="verify-btn" onclick="verifyNews()">
                     🔍 Verificar Notícia
                 </button>
+
+                <div style="text-align: center; margin: 20px 0;">
+                    <button onclick="toggleComparison()" class="secondary-btn">
+                        🔄 Comparar Duas Notícias
+                    </button>
+                </div>
             </div>
             
             <div class="loading" id="loading">
@@ -52,6 +64,56 @@
             </div>
 
             <div id="result"></div>
+
+            <!-- Dashboard de Estatísticas -->
+            <div class="stats-section" id="statsSection" style="display: none;">
+                <h3>📊 Dashboard de Estatísticas</h3>
+                <div class="stats-grid" id="statsGrid">
+                    <!-- Estatísticas serão inseridas aqui -->
+                </div>
+            </div>
+
+            <!-- Seletor de Temas -->
+            <div class="theme-selector" id="themeSelector" style="display: none;">
+                <h3>🎨 Escolha seu Tema</h3>
+                <div class="theme-options">
+                    <div class="theme-option" onclick="setTheme('default')" data-theme="default">
+                        <div class="theme-preview default-preview"></div>
+                        <span>Clássico</span>
+                    </div>
+                    <div class="theme-option" onclick="setTheme('professional')" data-theme="professional">
+                        <div class="theme-preview professional-preview"></div>
+                        <span>Profissional</span>
+                    </div>
+                    <div class="theme-option" onclick="setTheme('nature')" data-theme="nature">
+                        <div class="theme-preview nature-preview"></div>
+                        <span>Natureza</span>
+                    </div>
+                    <div class="theme-option" onclick="setTheme('neon')" data-theme="neon">
+                        <div class="theme-preview neon-preview"></div>
+                        <span>Neon</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Comparação de Notícias -->
+            <div class="comparison-section" id="comparisonSection" style="display: none;">
+                <h3>🔄 Comparar Notícias</h3>
+                <div class="comparison-container">
+                    <div class="comparison-side">
+                        <h4>Notícia A</h4>
+                        <textarea id="newsTextA" placeholder="Cole a primeira notícia aqui..."></textarea>
+                        <div id="resultA" class="comparison-result"></div>
+                    </div>
+                    <div class="comparison-divider">VS</div>
+                    <div class="comparison-side">
+                        <h4>Notícia B</h4>
+                        <textarea id="newsTextB" placeholder="Cole a segunda notícia aqui..."></textarea>
+                        <div id="resultB" class="comparison-result"></div>
+                    </div>
+                </div>
+                <button onclick="compareNews()" class="verify-btn">🔄 Comparar Notícias</button>
+            </div>
 
             <div class="history-section" id="historySection" style="display: none;">
                 <h3>📚 Histórico de Verificações</h3>
