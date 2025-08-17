@@ -67,6 +67,30 @@ class NewsAnalyzer {
             { pattern: /\b(governo.*(pagando|dando|liberou).*(auxílio|dinheiro|benefício).*(WhatsApp|link|cadastro))/gi, weight: 0.30, name: "Golpe financeiro" }
         ];
 
+        // Padrões de números e estatísticas suspeitas
+        this.numericalSuspiciousPatterns = [
+            // Porcentagens impossíveis ou exageradas
+            { pattern: /\b(9[5-9]|100)% dos (médicos|cientistas|especialistas).*(concordam|afirmam|dizem)/gi, weight: 0.25, name: "Estatística exagerada de consenso" },
+            { pattern: /\b(200|300|400|500)% (mais|de desconto|eficaz)/gi, weight: 0.20, name: "Porcentagem matematicamente impossível" },
+
+            // Números de mortes/casos irreais
+            { pattern: /\b(milhões?|bilhões?) de (mortos|mortes|vítimas).*(ontem|hoje|semana|mês)/gi, weight: 0.35, name: "Números de mortes irreais" },
+            { pattern: /\b\d{6,} (pessoas|casos).*(morreram|infectados).*(dia|ontem)/gi, weight: 0.30, name: "Números diários impossíveis" },
+
+            // Idades impossíveis
+            { pattern: /\b(1[5-9]\d|[2-9]\d\d) anos.*(mais jovem|criança|bebê)/gi, weight: 0.25, name: "Idade impossível" },
+
+            // Dinheiro/valores absurdos
+            { pattern: /\b(bilhões?|trilhões?).*(reais?|dólares?).*(por dia|diário|ganhou)/gi, weight: 0.20, name: "Valores financeiros irreais" },
+            { pattern: /\bR\$\s*\d{1,3}(\.\d{3}){3,}/gi, weight: 0.15, name: "Valor monetário excessivo" },
+
+            // Tempo impossível
+            { pattern: /\b(curou|perdeu|ganhou).*(em|apenas) (1|2|3) (dias?|horas?)/gi, weight: 0.20, name: "Tempo de resultado impossível" },
+
+            // Eficácia impossível
+            { pattern: /\b(100% (eficaz|garantido|funciona)|nunca falha|sempre funciona)/gi, weight: 0.18, name: "Eficácia impossível" }
+        ];
+
         // Domínios com diferentes níveis de credibilidade (foco brasileiro)
         this.credibleDomains = {
             // Muito confiáveis (boost +0.25)
@@ -184,9 +208,26 @@ class NewsAnalyzer {
             }
         });
 
+        // Verifica padrões numéricos suspeitos
+        let numericalSuspiciousScore = 0;
+        analysis.numericalIssues = [];
+        this.numericalSuspiciousPatterns.forEach(item => {
+            const matches = text.match(item.pattern);
+            if (matches) {
+                analysis.numericalIssues.push({
+                    matches: matches,
+                    type: item.name,
+                    weight: item.weight,
+                    count: matches.length
+                });
+                numericalSuspiciousScore += item.weight * Math.min(matches.length, 2);
+            }
+        });
+
         analysis.suspiciousScore = Math.min(suspiciousScore, 1.0);
         analysis.credibilityScore = Math.min(credibilityScore, 0.5);
         analysis.factualSuspiciousScore = Math.min(factualSuspiciousScore, 1.0);
+        analysis.numericalSuspiciousScore = Math.min(numericalSuspiciousScore, 1.0);
 
         // Análise de linguagem
         analysis.languageAnalysis = {
@@ -260,6 +301,15 @@ class NewsAnalyzer {
             // Penalidade extra para conteúdo factual muito suspeito
             if (textAnalysis.factualSuspiciousScore > 0.3) {
                 score -= 0.2; // Penalidade adicional
+            }
+        }
+
+        // PENALIDADE ALTA por números/estatísticas suspeitas
+        if (textAnalysis.numericalSuspiciousScore) {
+            score -= textAnalysis.numericalSuspiciousScore;
+            // Penalidade extra para números muito suspeitos
+            if (textAnalysis.numericalSuspiciousScore > 0.25) {
+                score -= 0.15; // Penalidade adicional
             }
         }
 
@@ -385,6 +435,15 @@ class NewsAnalyzer {
             textAnalysis.factualIssues.forEach(item => {
                 if (item.count > 0) {
                     summary.mainIssues.push(`🚨 CONTEÚDO FACTUAL SUSPEITO: ${item.type}`);
+                }
+            });
+        }
+
+        // Problemas numéricos (também graves)
+        if (textAnalysis.numericalIssues && textAnalysis.numericalIssues.length > 0) {
+            textAnalysis.numericalIssues.forEach(item => {
+                if (item.count > 0) {
+                    summary.mainIssues.push(`📊 NÚMEROS SUSPEITOS: ${item.type}`);
                 }
             });
         }

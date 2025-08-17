@@ -48,7 +48,7 @@ function displayResult(result) {
     const resultDiv = document.getElementById('result');
     const summary = result.summary;
     const score = Math.round(result.credibilityScore * 100);
-    
+
     let resultClass, scoreColor;
     if (result.isLikelyFake) {
         resultClass = 'result-false';
@@ -60,6 +60,9 @@ function displayResult(result) {
         resultClass = 'result-neutral';
         scoreColor = '#ffc107';
     }
+
+    // Salva no histórico
+    saveToHistory(result);
     
     const mainIssuesHtml = summary.mainIssues.length > 0 
         ? summary.mainIssues.map(issue => `<li>${issue}</li>`).join('')
@@ -75,13 +78,15 @@ function displayResult(result) {
                 <span class="result-icon">${result.isLikelyFake ? '❌' : score >= 70 ? '✅' : '⚠️'}</span>
                 <h3 class="result-title">${summary.status}</h3>
             </div>
-            
+
             <div class="score-container">
-                <span class="score-text">0%</span>
-                <div class="score-bar">
-                    <div class="score-fill" style="width: ${score}%; background: ${scoreColor};"></div>
+                <div class="score-chart-container">
+                    <canvas id="scoreChart" width="200" height="200"></canvas>
+                    <div class="score-chart-center">
+                        <p class="score-percentage" style="color: ${scoreColor};">${score}%</p>
+                        <p class="score-label">Credibilidade</p>
+                    </div>
                 </div>
-                <span class="score-text">${score}%</span>
             </div>
             
             <div class="info-grid">
@@ -107,6 +112,47 @@ function displayResult(result) {
             </div>
         </div>
     `;
+
+    // Cria o gráfico circular após inserir o HTML
+    setTimeout(() => createScoreChart(score, scoreColor), 100);
+}
+
+// Cria gráfico circular animado
+function createScoreChart(score, color) {
+    const ctx = document.getElementById('scoreChart');
+    if (!ctx) return;
+
+    // Destrói gráfico anterior se existir
+    if (window.scoreChartInstance) {
+        window.scoreChartInstance.destroy();
+    }
+
+    const remainingScore = 100 - score;
+
+    window.scoreChartInstance = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            datasets: [{
+                data: [score, remainingScore],
+                backgroundColor: [color, '#e9ecef'],
+                borderWidth: 0,
+                cutout: '75%'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+                legend: { display: false },
+                tooltip: { enabled: false }
+            },
+            animation: {
+                animateRotate: true,
+                duration: 1500,
+                easing: 'easeOutQuart'
+            }
+        }
+    });
 }
 
 // Permite verificar com Ctrl+Enter
@@ -148,6 +194,9 @@ function loadExample(type) {
     } else if (type === 'factual_fake') {
         textArea.value = "Lázaro não morreu e está morando em Ribeirão Preto. Ele conseguiu fugir e agora vive escondido. A polícia sabe mas não quer divulgar. Meu primo que mora lá viu ele no mercado semana passada.";
         urlInput.value = "";
+    } else if (type === 'numerical_fake') {
+        textArea.value = "INACREDITÁVEL! 99% dos médicos concordam que este remédio cura câncer em apenas 2 dias! 500% mais eficaz que quimioterapia! Ontem 2 milhões de pessoas foram curadas! 100% garantido ou seu dinheiro de volta!";
+        urlInput.value = "";
     }
 }
 
@@ -160,19 +209,20 @@ document.addEventListener('DOMContentLoaded', function() {
         <div style="text-align: center; margin: 20px 0; padding: 15px; background: #f8f9fa; border-radius: 10px;">
             <p style="margin-bottom: 15px; color: #666;"><strong>📝 Exemplos para teste (diferentes scores):</strong></p>
             <div style="margin-bottom: 8px;">
-                <button onclick="loadExample('fake')" style="margin: 2px; padding: 6px 10px; background: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 11px;">🚨 Fake Global</button>
-                <button onclick="loadExample('brazilian_fake')" style="margin: 2px; padding: 6px 10px; background: #8b0000; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 11px;">🇧🇷 Fake Brasil</button>
-                <button onclick="loadExample('factual_fake')" style="margin: 2px; padding: 6px 10px; background: #4a0e0e; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 11px;">💀 Fake Factual</button>
-                <button onclick="loadExample('suspicious')" style="margin: 2px; padding: 6px 10px; background: #fd7e14; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 11px;">⚠️ Suspeita</button>
+                <button onclick="loadExample('fake')" style="margin: 2px; padding: 6px 8px; background: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 10px;">🚨 Fake Global</button>
+                <button onclick="loadExample('brazilian_fake')" style="margin: 2px; padding: 6px 8px; background: #8b0000; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 10px;">🇧🇷 Fake Brasil</button>
+                <button onclick="loadExample('factual_fake')" style="margin: 2px; padding: 6px 8px; background: #4a0e0e; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 10px;">💀 Fake Factual</button>
+                <button onclick="loadExample('numerical_fake')" style="margin: 2px; padding: 6px 8px; background: #6f0000; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 10px;">📊 Fake Numérica</button>
             </div>
             <div style="margin-bottom: 8px;">
-                <button onclick="loadExample('moderate')" style="margin: 2px; padding: 6px 10px; background: #ffc107; color: black; border: none; border-radius: 4px; cursor: pointer; font-size: 11px;">📰 Moderada</button>
-                <button onclick="loadExample('real')" style="margin: 2px; padding: 6px 10px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 11px;">✅ Confiável</button>
-                <button onclick="loadExample('scientific')" style="margin: 2px; padding: 6px 10px; background: #20c997; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 11px;">🔬 Científica</button>
-                <button onclick="loadExample('url')" style="margin: 2px; padding: 6px 10px; background: #17a2b8; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 11px;">🌐 G1</button>
-                <button onclick="loadExample('credible_url')" style="margin: 2px; padding: 6px 10px; background: #6f42c1; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 11px;">🌐 BBC</button>
+                <button onclick="loadExample('suspicious')" style="margin: 2px; padding: 6px 8px; background: #fd7e14; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 10px;">⚠️ Suspeita</button>
+                <button onclick="loadExample('moderate')" style="margin: 2px; padding: 6px 8px; background: #ffc107; color: black; border: none; border-radius: 4px; cursor: pointer; font-size: 10px;">📰 Moderada</button>
+                <button onclick="loadExample('real')" style="margin: 2px; padding: 6px 8px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 10px;">✅ Confiável</button>
+                <button onclick="loadExample('scientific')" style="margin: 2px; padding: 6px 8px; background: #20c997; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 10px;">🔬 Científica</button>
+                <button onclick="loadExample('url')" style="margin: 2px; padding: 6px 8px; background: #17a2b8; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 10px;">🌐 G1</button>
+                <button onclick="loadExample('credible_url')" style="margin: 2px; padding: 6px 8px; background: #6f42c1; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 10px;">🌐 BBC</button>
             </div>
-            <p style="margin-top: 10px; font-size: 11px; color: #888;">💡 Agora detecta conteúdo factualmente incorreto (ex: Lázaro vivo)</p>
+            <p style="margin-top: 10px; font-size: 11px; color: #888;">💡 Sistema completo: Gráfico animado + Histórico + Detecção numérica</p>
         </div>
     `;
     
@@ -215,8 +265,83 @@ function trackUsage(action) {
     console.log('Action:', action);
 }
 
+// Sistema de Histórico
+function saveToHistory(result) {
+    const text = document.getElementById('newsText').value.trim();
+    const url = document.getElementById('newsUrl').value.trim();
+
+    if (!text && !url) return;
+
+    const historyItem = {
+        id: Date.now(),
+        timestamp: new Date().toLocaleString('pt-BR'),
+        text: text.substring(0, 200) + (text.length > 200 ? '...' : ''),
+        url: url,
+        score: Math.round(result.credibilityScore * 100),
+        isLikelyFake: result.isLikelyFake,
+        status: result.summary.status
+    };
+
+    let history = JSON.parse(localStorage.getItem('newsHistory') || '[]');
+    history.unshift(historyItem); // Adiciona no início
+    history = history.slice(0, 10); // Mantém apenas os últimos 10
+
+    localStorage.setItem('newsHistory', JSON.stringify(history));
+    updateHistoryDisplay();
+}
+
+function updateHistoryDisplay() {
+    const history = JSON.parse(localStorage.getItem('newsHistory') || '[]');
+    const historySection = document.getElementById('historySection');
+    const historyList = document.getElementById('historyList');
+
+    if (history.length === 0) {
+        historySection.style.display = 'none';
+        return;
+    }
+
+    historySection.style.display = 'block';
+
+    historyList.innerHTML = history.map(item => {
+        const className = item.isLikelyFake ? 'fake' : item.score >= 70 ? 'real' : 'neutral';
+        const icon = item.isLikelyFake ? '❌' : item.score >= 70 ? '✅' : '⚠️';
+
+        return `
+            <div class="history-item ${className}" onclick="loadFromHistory('${item.id}')">
+                <div class="history-header">
+                    <span class="history-score">${icon} ${item.score}%</span>
+                    <span class="history-time">${item.timestamp}</span>
+                </div>
+                <div class="history-text">${item.text || item.url}</div>
+            </div>
+        `;
+    }).join('');
+}
+
+function loadFromHistory(id) {
+    const history = JSON.parse(localStorage.getItem('newsHistory') || '[]');
+    const item = history.find(h => h.id == id);
+
+    if (item) {
+        if (item.text && item.text !== '...') {
+            document.getElementById('newsText').value = item.text.replace('...', '');
+        }
+        if (item.url) {
+            document.getElementById('newsUrl').value = item.url;
+        }
+    }
+}
+
+function clearHistory() {
+    if (confirm('Tem certeza que deseja limpar todo o histórico?')) {
+        localStorage.removeItem('newsHistory');
+        updateHistoryDisplay();
+    }
+}
+
 // Chama funções quando a página carrega
 document.addEventListener('DOMContentLoaded', function() {
     loadTheme();
+    updateHistoryDisplay();
     trackUsage('page_load');
 });

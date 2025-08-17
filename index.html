@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>🔍 Verificador de Notícias - Detecte Fake News</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -50,8 +51,16 @@
             <div class="loading" id="loading">
                 <i class="fas fa-spinner fa-spin"></i> Analisando notícia...
             </div>
-            
+
             <div id="result"></div>
+
+            <div class="history-section" id="historySection" style="display: none;">
+                <h3><i class="fas fa-history"></i> Histórico de Verificações</h3>
+                <div id="historyList"></div>
+                <button onclick="clearHistory()" class="clear-history-btn">
+                    <i class="fas fa-trash"></i> Limpar Histórico
+                </button>
+            </div>
         </div>
         
         <div class="footer">
