@@ -903,6 +903,185 @@ body.dark-mode #feedbackDetails select {
     color: #e0e0e0;
 }
 
+/* IA Híbrida - Indicadores de Status */
+.ai-status-indicator {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 10px;
+    border-radius: 8px;
+    font-size: 12px;
+    z-index: 1000;
+    max-width: 200px;
+}
+
+.ai-layer {
+    display: flex;
+    justify-content: space-between;
+    margin: 2px 0;
+    padding: 2px 0;
+}
+
+.ai-layer.active {
+    color: #4caf50;
+}
+
+.ai-layer.inactive {
+    color: #666;
+}
+
+/* Animação de carregamento para IA */
+.ai-loading {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border: 2px solid #f3f3f3;
+    border-top: 2px solid #007bff;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Melhorias visuais para análise híbrida */
+.analysis-layer-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 8px;
+    margin: 10px 0;
+}
+
+.analysis-layer-card {
+    text-align: center;
+    padding: 8px;
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 6px;
+    border: 2px solid transparent;
+    transition: all 0.3s ease;
+}
+
+.analysis-layer-card.neural {
+    border-color: #6f42c1;
+}
+
+.analysis-layer-card.api {
+    border-color: #20c997;
+}
+
+.analysis-layer-card.traditional {
+    border-color: #007bff;
+}
+
+.analysis-layer-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+/* Botão de configuração de API */
+.api-config-btn {
+    background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.3s ease;
+}
+
+.api-config-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(255, 152, 0, 0.4);
+}
+
+/* Modal de configuração de API */
+.api-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.api-modal-content {
+    background: white;
+    padding: 30px;
+    border-radius: 15px;
+    max-width: 500px;
+    width: 90%;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+}
+
+.api-modal h3 {
+    color: #333;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.api-input-group {
+    margin-bottom: 15px;
+}
+
+.api-input-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+    color: #555;
+}
+
+.api-input-group input {
+    width: 100%;
+    padding: 10px;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    font-size: 14px;
+    transition: border-color 0.3s ease;
+}
+
+.api-input-group input:focus {
+    border-color: #007bff;
+    outline: none;
+}
+
+.api-modal-buttons {
+    text-align: center;
+    margin-top: 20px;
+}
+
+.api-modal-buttons button {
+    margin: 0 10px;
+    padding: 12px 24px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.3s ease;
+}
+
+.api-modal-buttons .cancel-btn {
+    background: #6c757d;
+    color: white;
+}
+
+.api-modal-buttons .save-btn {
+    background: #007bff;
+    color: white;
+}
+
+.api-modal-buttons button:hover {
+    transform: translateY(-2px);
+}
+
 /* Responsividade */
 @media (max-width: 768px) {
     .comparison-container {

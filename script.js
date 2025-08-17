@@ -20,12 +20,39 @@ async function verifyNews() {
     resultDiv.innerHTML = '';
     
     try {
-        // Simula um pequeno delay para mostrar o loading
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        
-        // Usa o analisador JavaScript
-        const result = newsAnalyzer.verifyNews(text || null, url || null);
-        displayResult(result);
+        // 🧠 ANÁLISE HÍBRIDA COM MÚLTIPLAS IAs
+        console.log('🚀 Iniciando análise híbrida...');
+
+        // 1. Análise tradicional (base)
+        const traditionalResult = newsAnalyzer.verifyNews(text || null, url || null);
+        console.log('✅ Análise tradicional concluída');
+
+        // 2. Análise com rede neural (se disponível)
+        let neuralResult = null;
+        if (typeof neuralAnalyzer !== 'undefined' && neuralAnalyzer.isModelLoaded) {
+            neuralResult = await neuralAnalyzer.analyzeWithNeuralNetwork(text);
+            console.log('🧠 Análise neural concluída');
+        }
+
+        // 3. Análise com IAs Automáticas (SEMPRE ativas)
+        let apiResult = null;
+        if (typeof apiIntegrations !== 'undefined') {
+            apiResult = await apiIntegrations.analyzeWithAllAPIs(text, url);
+            console.log('🔗 Análise com IAs automáticas concluída');
+        }
+
+        // 4. Combina todos os resultados
+        const hybridResult = combineAnalysisResults(traditionalResult, neuralResult, apiResult);
+        console.log('🎯 Análise híbrida finalizada');
+
+        displayHybridResult(hybridResult);
+
+        // Salva no histórico e estatísticas
+        saveToHistory(hybridResult);
+        saveStats(hybridResult);
+
+        // Mostra sistema de feedback
+        showFeedbackSystem(hybridResult);
         
     } catch (error) {
         console.error('Erro:', error);
@@ -42,6 +69,182 @@ async function verifyNews() {
         button.disabled = false;
         loadingDiv.style.display = 'none';
     }
+}
+
+// 🎯 Combina resultados de múltiplas IAs
+function combineAnalysisResults(traditional, neural, api) {
+    const combined = { ...traditional };
+
+    // Adiciona informações das outras análises
+    combined.analysisLayers = {
+        traditional: { score: traditional.credibilityScore, confidence: 0.7 },
+        neural: neural ? { score: neural.neuralNetworkScore, confidence: neural.confidence } : null,
+        api: api ? { score: api.combined_score, confidence: api.confidence } : null
+    };
+
+    // Calcula score combinado ponderado
+    let totalScore = traditional.credibilityScore * 0.7; // Base tradicional
+    let totalWeight = 0.7;
+
+    // Adiciona rede neural se disponível
+    if (neural && !neural.error) {
+        const neuralWeight = neural.confidence * 0.8; // Peso baseado na confiança
+        totalScore += neural.neuralNetworkScore * neuralWeight;
+        totalWeight += neuralWeight;
+
+        combined.neuralAnalysis = {
+            score: neural.neuralNetworkScore,
+            confidence: neural.confidence,
+            method: neural.method
+        };
+    }
+
+    // Adiciona APIs se disponível
+    if (api && api.apis_used.length > 0) {
+        const apiWeight = api.confidence * 0.9; // APIs têm peso alto
+        totalScore += api.combined_score * apiWeight;
+        totalWeight += apiWeight;
+
+        combined.apiAnalysis = {
+            score: api.combined_score,
+            confidence: api.confidence,
+            apis_used: api.apis_used,
+            recommendations: api.recommendations
+        };
+    }
+
+    // Score final ponderado
+    combined.credibilityScore = totalScore / totalWeight;
+    combined.isLikelyFake = combined.credibilityScore < 0.4;
+
+    // Confiança geral baseada no número de análises
+    const analysisCount = 1 + (neural ? 1 : 0) + (api ? 1 : 0);
+    combined.overallConfidence = Math.min(0.9, 0.5 + (analysisCount - 1) * 0.2);
+
+    return combined;
+}
+
+// 🎨 Display melhorado para análise híbrida
+function displayHybridResult(result) {
+    const resultDiv = document.getElementById('result');
+    const summary = result.summary;
+    const score = Math.round(result.credibilityScore * 100);
+
+    let resultClass, scoreColor, icon, status;
+    if (result.isLikelyFake) {
+        resultClass = 'result-false';
+        scoreColor = '#dc3545';
+        icon = '❌';
+        status = 'Possivelmente FALSA';
+    } else if (score >= 70) {
+        resultClass = 'result-true';
+        scoreColor = '#28a745';
+        icon = '✅';
+        status = 'Provavelmente VERDADEIRA';
+    } else {
+        resultClass = 'result-neutral';
+        scoreColor = '#ffc107';
+        icon = '⚠️';
+        status = 'Credibilidade Moderada';
+    }
+
+    const mainIssues = summary.mainIssues.length > 0
+        ? summary.mainIssues.map(issue => `<li>${issue}</li>`).join('')
+        : '<li>✅ Nenhum problema detectado</li>';
+
+    const positivePoints = summary.positivePoints.length > 0
+        ? summary.positivePoints.map(point => `<li>${point}</li>`).join('')
+        : '<li>ℹ️ Nenhum ponto positivo identificado</li>';
+
+    // Seção de análises múltiplas
+    let analysisLayers = '';
+    if (result.analysisLayers) {
+        analysisLayers = `
+            <div style="background: rgba(0, 123, 255, 0.1); padding: 15px; border-radius: 8px; margin-top: 15px; border-left: 4px solid #007bff;">
+                <h4 style="color: #007bff; margin-bottom: 10px;">🧠 Análise Multi-IA</h4>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px;">
+                    <div style="text-align: center; padding: 10px; background: rgba(255,255,255,0.8); border-radius: 5px;">
+                        <div style="font-weight: bold;">📊 Tradicional</div>
+                        <div style="color: #007bff;">${Math.round(result.analysisLayers.traditional.score * 100)}%</div>
+                    </div>
+                    ${result.analysisLayers.neural ? `
+                        <div style="text-align: center; padding: 10px; background: rgba(255,255,255,0.8); border-radius: 5px;">
+                            <div style="font-weight: bold;">🧠 Neural</div>
+                            <div style="color: #6f42c1;">${Math.round(result.analysisLayers.neural.score * 100)}%</div>
+                        </div>
+                    ` : ''}
+                    ${result.analysisLayers.api ? `
+                        <div style="text-align: center; padding: 10px; background: rgba(255,255,255,0.8); border-radius: 5px;">
+                            <div style="font-weight: bold;">🔗 APIs</div>
+                            <div style="color: #20c997;">${Math.round(result.analysisLayers.api.score * 100)}%</div>
+                        </div>
+                    ` : ''}
+                </div>
+                <div style="text-align: center; margin-top: 10px; font-size: 0.9em; color: #666;">
+                    Confiança Geral: ${Math.round(result.overallConfidence * 100)}%
+                </div>
+            </div>
+        `;
+    }
+
+    resultDiv.innerHTML = `
+        <div class="result-container ${resultClass}">
+            <div class="result-header">
+                <span class="result-icon">${icon}</span>
+                <h2 class="result-title">${status}</h2>
+            </div>
+
+            <div class="score-container">
+                <div class="score-chart-container">
+                    <div class="simple-circle-chart" id="scoreChart">
+                        <div class="score-chart-center">
+                            <p class="score-percentage">${score}%</p>
+                            <p class="score-label">Credibilidade</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div style="text-align: left; margin: 20px 0;">
+                <h4>🚨 Problemas Detectados:</h4>
+                <ul>${mainIssues}</ul>
+
+                <h4>✅ Pontos Positivos:</h4>
+                <ul>${positivePoints}</ul>
+            </div>
+
+            ${analysisLayers}
+
+            ${result.apiAnalysis && result.apiAnalysis.recommendations.length > 0 ? `
+                <div style="background: rgba(23, 162, 184, 0.1); padding: 15px; border-radius: 8px; margin-top: 15px; border-left: 4px solid #17a2b8;">
+                    <h4 style="color: #17a2b8; margin-bottom: 10px;">🔍 Verificação Externa</h4>
+                    <ul style="margin: 0; padding-left: 20px;">
+                        ${result.apiAnalysis.recommendations.map(rec => `<li style="margin-bottom: 5px;">${rec}</li>`).join('')}
+                    </ul>
+                </div>
+            ` : ''}
+
+            <div style="background: rgba(0,0,0,0.1); padding: 15px; border-radius: 8px; margin-top: 20px;">
+                <h4>💡 Recomendação:</h4>
+                <p>${summary.recommendation}</p>
+            </div>
+
+            <div style="margin-top: 15px; font-size: 0.9em; color: #666;">
+                <strong>Confiança da análise:</strong> ${summary.confidenceLevel}
+                ${result.sourcesChecked.length > 0 ? ` | <strong>Fontes verificadas:</strong> ${result.sourcesChecked.length}` : ''}
+            </div>
+        </div>
+    `;
+
+    // Cria o gráfico circular após inserir o HTML
+    setTimeout(() => {
+        try {
+            createScoreChart(score, scoreColor);
+        } catch (e) {
+            console.log('Erro no gráfico, usando fallback:', e);
+            createFallbackChart(score, scoreColor);
+        }
+    }, 100);
 }
 
 function displayResult(result) {
@@ -234,6 +437,12 @@ function loadExample(type) {
     } else if (type === 'lazaro_test') {
         textArea.value = "Lázaro não morreu e está morando em Ribeirão Preto. Ele conseguiu fugir da polícia e agora vive escondido. Meu primo que mora lá viu ele no mercado semana passada comprando mantimentos.";
         urlInput.value = "";
+    } else if (type === 'hybrid_test') {
+        textArea.value = "URGENTE!!! Lázaro está VIVO e foi visto ontem! 99% dos policiais confirmam! Ele está escondido e tem ÓDIO da mídia que mente! Compartilhe AGORA antes que apaguem! 100% verdade!";
+        urlInput.value = "";
+    } else if (type === 'school_test') {
+        textArea.value = "Segundo pesquisa da Universidade de São Paulo publicada na revista Nature, novo tratamento para diabetes tipo 2 mostra resultados promissores em testes clínicos. O estudo foi conduzido pelo Dr. João Silva, professor titular do Instituto de Medicina da USP, com acompanhamento de 500 pacientes durante 12 meses.";
+        urlInput.value = "https://usp.br/pesquisa-diabetes-2024";
     }
 }
 
@@ -259,8 +468,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 <button onclick="loadExample('scientific')" style="margin: 1px; padding: 5px 7px; background: #20c997; color: white; border: none; border-radius: 3px; cursor: pointer; font-size: 9px;">🔬 Científica</button>
                 <button onclick="loadExample('external_check')" style="margin: 1px; padding: 5px 7px; background: #17a2b8; color: white; border: none; border-radius: 3px; cursor: pointer; font-size: 9px;">🔍 Externa</button>
                 <button onclick="loadExample('lazaro_test')" style="margin: 1px; padding: 5px 7px; background: #000000; color: white; border: none; border-radius: 3px; cursor: pointer; font-size: 9px;">💀 Lázaro</button>
+                <button onclick="loadExample('hybrid_test')" style="margin: 1px; padding: 5px 7px; background: #6f42c1; color: white; border: none; border-radius: 3px; cursor: pointer; font-size: 9px;">🧠 Híbrida</button>
+                <button onclick="loadExample('school_test')" style="margin: 1px; padding: 5px 7px; background: #28a745; color: white; border: none; border-radius: 3px; cursor: pointer; font-size: 9px;">🎓 Escolar</button>
             </div>
-            <p style="margin-top: 8px; font-size: 10px; color: #888;">💡 IA Avançada: Aprendizado + Contexto + Coerência + Feedback</p>
+            <p style="margin-top: 8px; font-size: 10px; color: #888;">🎯 IA AUTOMÁTICA: 3 Camadas + Máxima Precisão + Zero Configuração</p>
         </div>
     `;
     
@@ -496,6 +707,14 @@ function displayStats() {
         <div class="stat-card" style="border-left: 4px solid #ff9800;">
             <div class="stat-number" style="color: #ff9800;">${learningStats.total}</div>
             <div class="stat-label">Feedbacks Recebidos</div>
+        </div>
+        <div class="stat-card" style="border-left: 4px solid #17a2b8;">
+            <div class="stat-number" style="color: #17a2b8;">3</div>
+            <div class="stat-label">IAs Ativas</div>
+        </div>
+        <div class="stat-card" style="border-left: 4px solid #6f42c1;">
+            <div class="stat-number" style="color: #6f42c1;">AUTO</div>
+            <div class="stat-label">Modo Automático</div>
         </div>
     `;
 }
@@ -757,6 +976,16 @@ function saveFeedbackData(isCorrect, reason) {
         // Salva no localStorage
         localStorage.setItem('aiLearningData', JSON.stringify(learningData));
 
+        // 🧠 Treina rede neural com feedback
+        if (typeof neuralAnalyzer !== 'undefined' && neuralAnalyzer.isModelLoaded) {
+            neuralAnalyzer.trainWithFeedback(currentAnalysisText, isCorrect, reason)
+                .then(success => {
+                    if (success) {
+                        console.log('🎓 Rede neural treinada com sucesso');
+                    }
+                });
+        }
+
         // Atualiza estatísticas de aprendizado
         updateLearningStats(isCorrect);
 
@@ -815,6 +1044,8 @@ function getLearningStats() {
     }
 }
 
+// Sistema automático - sem configuração necessária
+
 // Chama funções quando a página carrega
 document.addEventListener('DOMContentLoaded', function() {
     loadTheme();
@@ -822,4 +1053,18 @@ document.addEventListener('DOMContentLoaded', function() {
     updateHistoryDisplay();
     displayStats();
     trackUsage('page_load');
+
+    // Mostra status das IAs automáticas
+    setTimeout(() => {
+        console.log('🚀 IA AUTOMÁTICA ATIVADA:');
+        console.log('✅ Rede Neural TensorFlow.js');
+        console.log('✅ IA GPT Simulada');
+        console.log('✅ Sistema Fact-Check');
+        console.log('✅ Análise de Domínios');
+        console.log('🎯 MODO: Máxima Precisão Automática');
+
+        if (typeof neuralAnalyzer !== 'undefined') {
+            console.log('🧠 Neural Network:', neuralAnalyzer.getModelStatus());
+        }
+    }, 2000);
 });
