@@ -81,7 +81,19 @@ function displayResult(result) {
 
             <div class="score-container">
                 <div class="score-chart-container">
-                    <canvas id="scoreChart" width="200" height="200"></canvas>
+                    <svg viewBox="0 0 36 36" class="circular-chart" id="scoreChart">
+                        <path class="circle-bg"
+                            d="M18 2.0845
+                            a 15.9155 15.9155 0 0 1 0 31.831
+                            a 15.9155 15.9155 0 0 1 0 -31.831"
+                        />
+                        <path class="circle"
+                            stroke-dasharray="0, 100"
+                            d="M18 2.0845
+                            a 15.9155 15.9155 0 0 1 0 31.831
+                            a 15.9155 15.9155 0 0 1 0 -31.831"
+                        />
+                    </svg>
                     <div class="score-chart-center">
                         <p class="score-percentage" style="color: ${scoreColor};">${score}%</p>
                         <p class="score-label">Credibilidade</p>
@@ -117,42 +129,30 @@ function displayResult(result) {
     setTimeout(() => createScoreChart(score, scoreColor), 100);
 }
 
-// Cria gráfico circular animado
+// Cria gráfico circular CSS animado
 function createScoreChart(score, color) {
-    const ctx = document.getElementById('scoreChart');
-    if (!ctx) return;
+    const chart = document.getElementById('scoreChart');
+    if (!chart) return;
 
-    // Destrói gráfico anterior se existir
-    if (window.scoreChartInstance) {
-        window.scoreChartInstance.destroy();
+    const circle = chart.querySelector('.circle');
+    if (!circle) return;
+
+    // Define a cor baseada no score
+    let colorClass = 'red';
+    if (score >= 70) {
+        colorClass = 'green';
+    } else if (score >= 40) {
+        colorClass = 'yellow';
     }
 
-    const remainingScore = 100 - score;
+    // Remove classes anteriores e adiciona a nova
+    circle.classList.remove('green', 'yellow', 'red', 'blue');
+    circle.classList.add(colorClass);
 
-    window.scoreChartInstance = new Chart(ctx, {
-        type: 'doughnut',
-        data: {
-            datasets: [{
-                data: [score, remainingScore],
-                backgroundColor: [color, '#e9ecef'],
-                borderWidth: 0,
-                cutout: '75%'
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: true,
-            plugins: {
-                legend: { display: false },
-                tooltip: { enabled: false }
-            },
-            animation: {
-                animateRotate: true,
-                duration: 1500,
-                easing: 'easeOutQuart'
-            }
-        }
-    });
+    // Anima o progresso
+    setTimeout(() => {
+        circle.style.strokeDasharray = `${score}, 100`;
+    }, 100);
 }
 
 // Permite verificar com Ctrl+Enter
@@ -267,55 +267,74 @@ function trackUsage(action) {
 
 // Sistema de Histórico
 function saveToHistory(result) {
+    // Verifica se localStorage está disponível
+    if (typeof(Storage) === "undefined") {
+        console.log("LocalStorage não disponível");
+        return;
+    }
+
     const text = document.getElementById('newsText').value.trim();
     const url = document.getElementById('newsUrl').value.trim();
 
     if (!text && !url) return;
 
-    const historyItem = {
-        id: Date.now(),
-        timestamp: new Date().toLocaleString('pt-BR'),
-        text: text.substring(0, 200) + (text.length > 200 ? '...' : ''),
-        url: url,
-        score: Math.round(result.credibilityScore * 100),
-        isLikelyFake: result.isLikelyFake,
-        status: result.summary.status
-    };
+    try {
+        const historyItem = {
+            id: Date.now(),
+            timestamp: new Date().toLocaleString('pt-BR'),
+            text: text.substring(0, 200) + (text.length > 200 ? '...' : ''),
+            url: url,
+            score: Math.round(result.credibilityScore * 100),
+            isLikelyFake: result.isLikelyFake,
+            status: result.summary.status
+        };
 
-    let history = JSON.parse(localStorage.getItem('newsHistory') || '[]');
-    history.unshift(historyItem); // Adiciona no início
-    history = history.slice(0, 10); // Mantém apenas os últimos 10
+        let history = JSON.parse(localStorage.getItem('newsHistory') || '[]');
+        history.unshift(historyItem); // Adiciona no início
+        history = history.slice(0, 10); // Mantém apenas os últimos 10
 
-    localStorage.setItem('newsHistory', JSON.stringify(history));
-    updateHistoryDisplay();
+        localStorage.setItem('newsHistory', JSON.stringify(history));
+        updateHistoryDisplay();
+    } catch (e) {
+        console.log("Erro ao salvar histórico:", e);
+    }
 }
 
 function updateHistoryDisplay() {
-    const history = JSON.parse(localStorage.getItem('newsHistory') || '[]');
-    const historySection = document.getElementById('historySection');
-    const historyList = document.getElementById('historyList');
+    try {
+        const history = JSON.parse(localStorage.getItem('newsHistory') || '[]');
+        const historySection = document.getElementById('historySection');
+        const historyList = document.getElementById('historyList');
 
-    if (history.length === 0) {
-        historySection.style.display = 'none';
-        return;
-    }
+        if (!historySection || !historyList) {
+            console.log("Elementos do histórico não encontrados");
+            return;
+        }
 
-    historySection.style.display = 'block';
+        if (history.length === 0) {
+            historySection.style.display = 'none';
+            return;
+        }
 
-    historyList.innerHTML = history.map(item => {
-        const className = item.isLikelyFake ? 'fake' : item.score >= 70 ? 'real' : 'neutral';
-        const icon = item.isLikelyFake ? '❌' : item.score >= 70 ? '✅' : '⚠️';
+        historySection.style.display = 'block';
 
-        return `
-            <div class="history-item ${className}" onclick="loadFromHistory('${item.id}')">
-                <div class="history-header">
-                    <span class="history-score">${icon} ${item.score}%</span>
-                    <span class="history-time">${item.timestamp}</span>
+        historyList.innerHTML = history.map(item => {
+            const className = item.isLikelyFake ? 'fake' : item.score >= 70 ? 'real' : 'neutral';
+            const icon = item.isLikelyFake ? '❌' : item.score >= 70 ? '✅' : '⚠️';
+
+            return `
+                <div class="history-item ${className}" onclick="loadFromHistory('${item.id}')">
+                    <div class="history-header">
+                        <span class="history-score">${icon} ${item.score}%</span>
+                        <span class="history-time">${item.timestamp}</span>
+                    </div>
+                    <div class="history-text">${item.text || item.url}</div>
                 </div>
-                <div class="history-text">${item.text || item.url}</div>
-            </div>
-        `;
-    }).join('');
+            `;
+        }).join('');
+    } catch (e) {
+        console.log("Erro ao atualizar histórico:", e);
+    }
 }
 
 function loadFromHistory(id) {
