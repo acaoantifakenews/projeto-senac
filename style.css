@@ -242,21 +242,49 @@ textarea {
     width: 200px;
     height: 200px;
     margin: 0 auto 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Gráfico Circular Simples com CSS */
+.simple-circle-chart {
+    position: relative;
+    width: 180px;
+    height: 180px;
+    border-radius: 50%;
+    background: conic-gradient(
+        var(--score-color, #28a745) 0deg,
+        var(--score-color, #28a745) var(--score-angle, 270deg),
+        #e9ecef var(--score-angle, 270deg),
+        #e9ecef 360deg
+    );
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 1s ease;
+}
+
+.simple-circle-chart::before {
+    content: '';
+    position: absolute;
+    width: 140px;
+    height: 140px;
+    border-radius: 50%;
+    background: white;
 }
 
 .score-chart-center {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    text-align: center;
+    position: relative;
     z-index: 10;
+    text-align: center;
 }
 
 .score-percentage {
     font-size: 2.5em;
     font-weight: 700;
     margin: 0;
+    color: var(--score-color, #28a745);
 }
 
 .score-label {
@@ -265,52 +293,9 @@ textarea {
     margin: 0;
 }
 
-/* Gráfico Circular CSS Puro */
-.circular-chart {
-    display: block;
-    margin: 0 auto;
-    max-width: 200px;
-    max-height: 200px;
-}
-
-.circle-bg {
-    fill: none;
-    stroke: #e9ecef;
-    stroke-width: 3.8;
-}
-
-.circle {
-    fill: none;
-    stroke-width: 3.8;
-    stroke-linecap: round;
-    animation: progress 2s ease-out forwards;
-}
-
-@keyframes progress {
-    0% {
-        stroke-dasharray: 0 100;
-    }
-}
-
-.circle.green {
-    stroke: #28a745;
-}
-
-.circle.yellow {
-    stroke: #ffc107;
-}
-
-.circle.red {
-    stroke: #dc3545;
-}
-
-.circle.blue {
-    stroke: #007bff;
-}
-
-/* Modo escuro para gráfico */
-body.dark-mode .circle-bg {
-    stroke: #404040;
+/* Modo escuro */
+body.dark-mode .simple-circle-chart::before {
+    background: #1a1a1a;
 }
 
 body.dark-mode .score-label {

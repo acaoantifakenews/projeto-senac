@@ -12,10 +12,10 @@
         <div class="header">
             <div class="header-controls">
                 <button class="theme-toggle" onclick="toggleTheme()" title="Alternar tema">
-                    <i class="fas fa-moon" id="theme-icon"></i>
+                    <span id="theme-icon">🌙</span>
                 </button>
             </div>
-            <h1><i class="fas fa-search"></i> Verificador de Notícias</h1>
+            <h1>🔍 Verificador de Notícias</h1>
             <p>Detecte fake news com inteligência artificial</p>
         </div>
         
@@ -23,7 +23,7 @@
             <div class="input-section">
                 <div class="input-group">
                     <label for="newsText">
-                        <i class="fas fa-newspaper"></i> Texto da Notícia
+                        📰 Texto da Notícia
                     </label>
                     <textarea 
                         id="newsText" 
@@ -33,7 +33,7 @@
                 
                 <div class="input-group">
                     <label for="newsUrl">
-                        <i class="fas fa-link"></i> URL da Notícia (opcional)
+                        🌐 URL da Notícia (opcional)
                     </label>
                     <input 
                         type="url" 
@@ -43,21 +43,21 @@
                 </div>
                 
                 <button class="verify-btn" onclick="verifyNews()">
-                    <i class="fas fa-shield-alt"></i> Verificar Notícia
+                    🔍 Verificar Notícia
                 </button>
             </div>
             
             <div class="loading" id="loading">
-                <i class="fas fa-spinner fa-spin"></i> Analisando notícia...
+                <span>⏳</span> Analisando notícia...
             </div>
 
             <div id="result"></div>
 
             <div class="history-section" id="historySection" style="display: none;">
-                <h3><i class="fas fa-history"></i> Histórico de Verificações</h3>
+                <h3>📚 Histórico de Verificações</h3>
                 <div id="historyList"></div>
                 <button onclick="clearHistory()" class="clear-history-btn">
-                    <i class="fas fa-trash"></i> Limpar Histórico
+                    🗑️ Limpar Histórico
                 </button>
             </div>
         </div>

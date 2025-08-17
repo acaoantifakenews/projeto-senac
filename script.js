@@ -81,22 +81,11 @@ function displayResult(result) {
 
             <div class="score-container">
                 <div class="score-chart-container">
-                    <svg viewBox="0 0 36 36" class="circular-chart" id="scoreChart">
-                        <path class="circle-bg"
-                            d="M18 2.0845
-                            a 15.9155 15.9155 0 0 1 0 31.831
-                            a 15.9155 15.9155 0 0 1 0 -31.831"
-                        />
-                        <path class="circle"
-                            stroke-dasharray="0, 100"
-                            d="M18 2.0845
-                            a 15.9155 15.9155 0 0 1 0 31.831
-                            a 15.9155 15.9155 0 0 1 0 -31.831"
-                        />
-                    </svg>
-                    <div class="score-chart-center">
-                        <p class="score-percentage" style="color: ${scoreColor};">${score}%</p>
-                        <p class="score-label">Credibilidade</p>
+                    <div class="simple-circle-chart" id="scoreChart">
+                        <div class="score-chart-center">
+                            <p class="score-percentage">${score}%</p>
+                            <p class="score-label">Credibilidade</p>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -126,33 +115,59 @@ function displayResult(result) {
     `;
 
     // Cria o gráfico circular após inserir o HTML
-    setTimeout(() => createScoreChart(score, scoreColor), 100);
+    setTimeout(() => {
+        try {
+            createScoreChart(score, scoreColor);
+        } catch (e) {
+            console.log('Erro no gráfico, usando fallback:', e);
+            createFallbackChart(score, scoreColor);
+        }
+    }, 100);
 }
 
-// Cria gráfico circular CSS animado
+// Cria gráfico circular simples
 function createScoreChart(score, color) {
+    const chart = document.getElementById('scoreChart');
+    if (!chart) {
+        console.log('Gráfico não encontrado');
+        return;
+    }
+
+    // Define a cor baseada no score
+    let scoreColor = '#dc3545'; // vermelho
+    if (score >= 70) {
+        scoreColor = '#28a745'; // verde
+    } else if (score >= 40) {
+        scoreColor = '#ffc107'; // amarelo
+    }
+
+    // Calcula o ângulo (360 graus = 100%)
+    const angle = (score / 100) * 360;
+
+    // Aplica as variáveis CSS
+    chart.style.setProperty('--score-color', scoreColor);
+    chart.style.setProperty('--score-angle', angle + 'deg');
+
+    console.log(`Gráfico criado: ${score}% com cor ${scoreColor}`);
+}
+
+// Fallback: barra de progresso simples
+function createFallbackChart(score, color) {
     const chart = document.getElementById('scoreChart');
     if (!chart) return;
 
-    const circle = chart.querySelector('.circle');
-    if (!circle) return;
-
-    // Define a cor baseada no score
-    let colorClass = 'red';
-    if (score >= 70) {
-        colorClass = 'green';
-    } else if (score >= 40) {
-        colorClass = 'yellow';
-    }
-
-    // Remove classes anteriores e adiciona a nova
-    circle.classList.remove('green', 'yellow', 'red', 'blue');
-    circle.classList.add(colorClass);
-
-    // Anima o progresso
-    setTimeout(() => {
-        circle.style.strokeDasharray = `${score}, 100`;
-    }, 100);
+    chart.innerHTML = `
+        <div style="text-align: center; padding: 20px;">
+            <div style="font-size: 2.5em; font-weight: bold; color: ${color}; margin-bottom: 10px;">
+                ${score}%
+            </div>
+            <div style="width: 100%; height: 20px; background: #e9ecef; border-radius: 10px; overflow: hidden;">
+                <div style="width: ${score}%; height: 100%; background: ${color}; transition: width 2s ease;"></div>
+            </div>
+            <div style="margin-top: 10px; color: #666;">Credibilidade</div>
+        </div>
+    `;
+    console.log('Usando gráfico fallback');
 }
 
 // Permite verificar com Ctrl+Enter
@@ -237,10 +252,10 @@ function toggleTheme() {
     body.classList.toggle('dark-mode');
 
     if (body.classList.contains('dark-mode')) {
-        themeIcon.className = 'fas fa-sun';
+        themeIcon.textContent = '☀️';
         localStorage.setItem('theme', 'dark');
     } else {
-        themeIcon.className = 'fas fa-moon';
+        themeIcon.textContent = '🌙';
         localStorage.setItem('theme', 'light');
     }
 }
@@ -253,9 +268,9 @@ function loadTheme() {
 
     if (savedTheme === 'dark') {
         body.classList.add('dark-mode');
-        themeIcon.className = 'fas fa-sun';
+        themeIcon.textContent = '☀️';
     } else {
-        themeIcon.className = 'fas fa-moon';
+        themeIcon.textContent = '🌙';
     }
 }
 
@@ -265,38 +280,54 @@ function trackUsage(action) {
     console.log('Action:', action);
 }
 
-// Sistema de Histórico
+// Sistema de Histórico Simplificado
 function saveToHistory(result) {
-    // Verifica se localStorage está disponível
-    if (typeof(Storage) === "undefined") {
-        console.log("LocalStorage não disponível");
-        return;
-    }
-
-    const text = document.getElementById('newsText').value.trim();
-    const url = document.getElementById('newsUrl').value.trim();
-
-    if (!text && !url) return;
-
     try {
+        // Testa localStorage
+        if (!window.localStorage) {
+            console.log("LocalStorage não disponível");
+            return;
+        }
+
+        const text = document.getElementById('newsText');
+        const url = document.getElementById('newsUrl');
+
+        if (!text || !url) {
+            console.log("Elementos não encontrados");
+            return;
+        }
+
+        const textValue = text.value.trim();
+        const urlValue = url.value.trim();
+
+        if (!textValue && !urlValue) return;
+
         const historyItem = {
             id: Date.now(),
-            timestamp: new Date().toLocaleString('pt-BR'),
-            text: text.substring(0, 200) + (text.length > 200 ? '...' : ''),
-            url: url,
+            timestamp: new Date().toLocaleString(),
+            text: textValue.substring(0, 150) + (textValue.length > 150 ? '...' : ''),
+            url: urlValue,
             score: Math.round(result.credibilityScore * 100),
-            isLikelyFake: result.isLikelyFake,
-            status: result.summary.status
+            isLikelyFake: result.isLikelyFake
         };
 
-        let history = JSON.parse(localStorage.getItem('newsHistory') || '[]');
-        history.unshift(historyItem); // Adiciona no início
-        history = history.slice(0, 10); // Mantém apenas os últimos 10
+        let history = [];
+        try {
+            history = JSON.parse(localStorage.getItem('newsHistory') || '[]');
+        } catch (e) {
+            console.log("Erro ao ler histórico:", e);
+            history = [];
+        }
+
+        history.unshift(historyItem);
+        history = history.slice(0, 5); // Mantém apenas 5 itens
 
         localStorage.setItem('newsHistory', JSON.stringify(history));
         updateHistoryDisplay();
+
+        console.log("Histórico salvo com sucesso");
     } catch (e) {
-        console.log("Erro ao salvar histórico:", e);
+        console.log("Erro geral no histórico:", e);
     }
 }
 
