@@ -4,7 +4,7 @@ Sistema inteligente para verificação de notícias falsas usando HTML, CSS e Ja
 
 ## 🌐 Acesso Online
 
-**[🚀 Acesse a ferramenta aqui](https://seuusuario.github.io/verificador-noticias/)**
+**[🚀 Acesse a ferramenta aqui](https://tzdurolas.github.io/projeto-senac)**
 
 ## ✨ Funcionalidades
 
