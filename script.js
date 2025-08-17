@@ -20,39 +20,53 @@ async function verifyNews() {
     resultDiv.innerHTML = '';
     
     try {
-        // 🧠 ANÁLISE HÍBRIDA COM MÚLTIPLAS IAs
-        console.log('🚀 Iniciando análise híbrida...');
+        // 🧠 ANÁLISE HÍBRIDA OTIMIZADA
+        console.log('🚀 Iniciando análise...');
 
-        // 1. Análise tradicional (base)
+        // 1. Análise tradicional (sempre funciona)
         const traditionalResult = newsAnalyzer.verifyNews(text || null, url || null);
-        console.log('✅ Análise tradicional concluída');
+        console.log('✅ Análise tradicional OK');
 
-        // 2. Análise com rede neural (se disponível)
+        // 2. Análise neural (com fallback)
         let neuralResult = null;
-        if (typeof neuralAnalyzer !== 'undefined' && neuralAnalyzer.isModelLoaded) {
-            neuralResult = await neuralAnalyzer.analyzeWithNeuralNetwork(text);
-            console.log('🧠 Análise neural concluída');
+        try {
+            if (typeof neuralAnalyzer !== 'undefined') {
+                neuralResult = await neuralAnalyzer.analyzeWithNeuralNetwork(text);
+                console.log('🧠 Análise neural OK');
+            }
+        } catch (e) {
+            console.log('⚠️ Neural falhou, continuando...');
         }
 
-        // 3. Análise com IAs Automáticas (SEMPRE ativas)
+        // 3. Análise com APIs (com timeout)
         let apiResult = null;
-        if (typeof apiIntegrations !== 'undefined') {
-            apiResult = await apiIntegrations.analyzeWithAllAPIs(text, url);
-            console.log('🔗 Análise com IAs automáticas concluída');
+        try {
+            if (typeof apiIntegrations !== 'undefined') {
+                // Timeout de 5 segundos para evitar travamento
+                apiResult = await Promise.race([
+                    apiIntegrations.analyzeWithAllAPIs(text, url),
+                    new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 5000))
+                ]);
+                console.log('🔗 Análise APIs OK');
+            }
+        } catch (e) {
+            console.log('⚠️ APIs falharam, continuando...');
         }
 
-        // 4. Combina todos os resultados
+        // 4. Combina resultados (sempre funciona)
         const hybridResult = combineAnalysisResults(traditionalResult, neuralResult, apiResult);
-        console.log('🎯 Análise híbrida finalizada');
+        console.log('🎯 Análise finalizada');
 
         displayHybridResult(hybridResult);
 
-        // Salva no histórico e estatísticas
-        saveToHistory(hybridResult);
-        saveStats(hybridResult);
-
-        // Mostra sistema de feedback
-        showFeedbackSystem(hybridResult);
+        // Salva dados
+        try {
+            saveToHistory(hybridResult);
+            saveStats(hybridResult);
+            showFeedbackSystem(hybridResult);
+        } catch (e) {
+            console.log('⚠️ Erro ao salvar, continuando...');
+        }
         
     } catch (error) {
         console.error('Erro:', error);
@@ -1054,17 +1068,9 @@ document.addEventListener('DOMContentLoaded', function() {
     displayStats();
     trackUsage('page_load');
 
-    // Mostra status das IAs automáticas
+    // Status simplificado
     setTimeout(() => {
-        console.log('🚀 IA AUTOMÁTICA ATIVADA:');
-        console.log('✅ Rede Neural TensorFlow.js');
-        console.log('✅ IA GPT Simulada');
-        console.log('✅ Sistema Fact-Check');
-        console.log('✅ Análise de Domínios');
-        console.log('🎯 MODO: Máxima Precisão Automática');
-
-        if (typeof neuralAnalyzer !== 'undefined') {
-            console.log('🧠 Neural Network:', neuralAnalyzer.getModelStatus());
-        }
-    }, 2000);
+        console.log('✅ Verificador de Notícias carregado');
+        console.log('🎯 Modo: Análise Avançada');
+    }, 1000);
 });

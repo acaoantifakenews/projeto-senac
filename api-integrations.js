@@ -76,10 +76,10 @@ class APIIntegrations {
         return hash.toString();
     }
     
-    // 1. Simulação Avançada de Google Fact Check
+    // 1. Simulação Rápida de Google Fact Check
     async checkWithGoogleFactCheck(query) {
-        // Simula delay de API real
-        await new Promise(resolve => setTimeout(resolve, 800 + Math.random() * 400));
+        // Delay mínimo para não travar
+        await new Promise(resolve => setTimeout(resolve, 200 + Math.random() * 100));
 
         // Verifica cache
         const cached = this.getCachedResult(query, 'google_fact_check');
@@ -199,10 +199,10 @@ class APIIntegrations {
         };
     }
     
-    // 2. IA GPT Simulada Ultra-Avançada
+    // 2. IA GPT Simulada Rápida
     async checkWithOpenAI(text) {
-        // Simula delay de processamento de IA
-        await new Promise(resolve => setTimeout(resolve, 1200 + Math.random() * 800));
+        // Delay mínimo para não travar
+        await new Promise(resolve => setTimeout(resolve, 300 + Math.random() * 200));
 
         // Verifica cache
         const cached = this.getCachedResult(text, 'openai');
@@ -374,8 +374,8 @@ class APIIntegrations {
             return { error: 'URL não fornecida', service: 'domain_reputation' };
         }
 
-        // Simula delay de verificação
-        await new Promise(resolve => setTimeout(resolve, 600 + Math.random() * 400));
+        // Delay mínimo
+        await new Promise(resolve => setTimeout(resolve, 100 + Math.random() * 100));
 
         try {
             const domain = new URL(url).hostname.toLowerCase();

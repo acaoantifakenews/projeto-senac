@@ -76,8 +76,8 @@ class NewsAnalyzer {
 
         // Padrões de conteúdo factualmente suspeito (melhorados)
         this.factualSuspiciousPatterns = [
-            // Pessoas mortas que estariam vivas (usando base de conhecimento)
-            { pattern: this.createDeadPeoplePattern(), weight: 0.45, name: "Afirmação sobre pessoa notoriamente morta" },
+            // Pessoas mortas que estariam vivas (padrão fixo para evitar erro)
+            { pattern: /\b(Lázaro|Lazaro|Michael Jackson|Elvis|Ayrton Senna|Cazuza|Chorão|Tim Maia|Raul Seixas).*(não morreu|está vivo|morando|escondido|fugiu|foi visto|continua vivo)/gi, weight: 0.45, name: "Afirmação sobre pessoa notoriamente morta" },
 
             // Eventos históricos negados
             { pattern: /\b(11 de setembro|holocausto|chegada à lua).*(falso|encenado|não aconteceu|mentira)/gi, weight: 0.30, name: "Negação de eventos históricos" },
@@ -218,161 +218,138 @@ class NewsAnalyzer {
             { pattern: /\b(fonte|referência|bibliografia|link|acesso em|disponível em)\b/gi, weight: 0.04, name: "Transparência de fontes" }
         ];
 
-        // Sistema de aprendizado
-        this.learningData = this.loadLearningData();
-    }
-
-    // Cria padrões dinâmicos baseados na base de conhecimento
-    createDeadPeoplePattern() {
-        const names = this.knowledgeBase.deadPeople.flatMap(person => person.names);
-        const namePattern = names.join('|');
-        return new RegExp(`\\b(${namePattern}).*(não morreu|está vivo|morando|escondido|fugiu|foi visto|continua vivo)`, 'gi');
-    }
-
-    // Carrega dados de aprendizado
-    loadLearningData() {
+        // Sistema de aprendizado simplificado
+        this.learningData = {};
         try {
-            return JSON.parse(localStorage.getItem('aiLearningData') || '{}');
+            this.learningData = JSON.parse(localStorage.getItem('aiLearningData') || '{}');
         } catch (e) {
-            return {};
+            this.learningData = {};
         }
     }
 
-    // Salva dados de aprendizado
-    saveLearningData() {
-        try {
-            localStorage.setItem('aiLearningData', JSON.stringify(this.learningData));
-        } catch (e) {
-            console.log('Erro ao salvar dados de aprendizado:', e);
-        }
-    }
-
-    // Aplica aprendizado aos padrões
+    // Aplica aprendizado simplificado
     applyLearning(text, result) {
-        const textHash = this.hashText(text);
+        try {
+            if (!text || !this.learningData) return result;
 
-        if (this.learningData[textHash]) {
-            const learned = this.learningData[textHash];
+            const textHash = this.hashText(text);
 
-            // Ajusta score baseado no feedback
-            if (learned.feedback === 'incorrect') {
-                if (learned.reason === 'score_too_high') {
-                    result.credibilityScore *= 0.7; // Reduz score
-                } else if (learned.reason === 'score_too_low') {
-                    result.credibilityScore *= 1.3; // Aumenta score
-                } else if (learned.reason === 'missed_fake') {
-                    result.credibilityScore *= 0.5; // Penaliza muito
-                    result.isLikelyFake = true;
-                }
+            if (this.learningData[textHash]) {
+                const learned = this.learningData[textHash];
 
-                // Garante limites
-                result.credibilityScore = Math.max(0, Math.min(1, result.credibilityScore));
-            }
-        }
-
-        return result;
-    }
-
-    // Cria hash simples do texto
-    hashText(text) {
-        let hash = 0;
-        for (let i = 0; i < text.length; i++) {
-            const char = text.charCodeAt(i);
-            hash = ((hash << 5) - hash) + char;
-            hash = hash & hash; // Converte para 32bit
-        }
-        return hash.toString();
-    }
-
-    // Análise contextual avançada
-    performContextualAnalysis(text) {
-        const context = {
-            hasDeadPersonClaim: false,
-            hasImpossibleNumbers: false,
-            hasKnownFakeNews: false,
-            hasContradictions: false,
-            suspiciousContext: []
-        };
-
-        // Verifica pessoas mortas
-        this.knowledgeBase.deadPeople.forEach(person => {
-            person.names.forEach(name => {
-                if (text.toLowerCase().includes(name.toLowerCase())) {
-                    const alivePattern = /(não morreu|está vivo|morando|escondido|fugiu|foi visto|continua vivo)/gi;
-                    if (alivePattern.test(text)) {
-                        context.hasDeadPersonClaim = true;
-                        context.suspiciousContext.push(`Afirma que ${name} está vivo (morreu em ${person.death})`);
+                if (learned.feedback === 'incorrect') {
+                    if (learned.reason === 'score_too_high') {
+                        result.credibilityScore *= 0.7;
+                    } else if (learned.reason === 'missed_fake') {
+                        result.credibilityScore *= 0.5;
+                        result.isLikelyFake = true;
                     }
+
+                    result.credibilityScore = Math.max(0, Math.min(1, result.credibilityScore));
+                }
+            }
+
+            return result;
+        } catch (e) {
+            console.log('Erro no aprendizado:', e);
+            return result;
+        }
+    }
+
+    // Hash simples
+    hashText(text) {
+        try {
+            let hash = 0;
+            for (let i = 0; i < Math.min(text.length, 100); i++) {
+                const char = text.charCodeAt(i);
+                hash = ((hash << 5) - hash) + char;
+                hash = hash & hash;
+            }
+            return hash.toString();
+        } catch (e) {
+            return '0';
+        }
+    }
+
+    // Análise contextual simplificada
+    performSimpleContextualAnalysis(text) {
+        try {
+            const context = {
+                hasDeadPersonClaim: false,
+                hasImpossibleNumbers: false,
+                hasKnownFakeNews: false,
+                suspiciousContext: []
+            };
+
+            const textLower = text.toLowerCase();
+
+            // Verifica pessoas mortas (simplificado)
+            const deadPeople = ['lázaro', 'lazaro', 'michael jackson', 'elvis'];
+            const aliveWords = ['não morreu', 'está vivo', 'foi visto'];
+
+            deadPeople.forEach(person => {
+                if (textLower.includes(person)) {
+                    aliveWords.forEach(alive => {
+                        if (textLower.includes(alive)) {
+                            context.hasDeadPersonClaim = true;
+                            context.suspiciousContext.push(`Afirma que ${person} está vivo`);
+                        }
+                    });
                 }
             });
-        });
 
-        // Verifica fake news conhecidas
-        this.knowledgeBase.knownFakeNews.forEach(fakeNews => {
-            if (text.toLowerCase().includes(fakeNews.toLowerCase())) {
-                context.hasKnownFakeNews = true;
-                context.suspiciousContext.push(`Menciona fake news conhecida: ${fakeNews}`);
-            }
-        });
-
-        // Verifica números impossíveis específicos
-        const impossiblePatterns = [
-            { pattern: /\b(9[5-9]|100)% dos (médicos|cientistas)/gi, desc: "Consenso impossível de profissionais" },
-            { pattern: /\b[1-9]\d{6,} (mortos|mortes|vítimas).*(ontem|hoje|dia)/gi, desc: "Número de mortes impossível em um dia" },
-            { pattern: /\b(200|300|400|500)% (mais|eficaz|desconto)/gi, desc: "Porcentagem matematicamente impossível" }
-        ];
-
-        impossiblePatterns.forEach(item => {
-            if (item.pattern.test(text)) {
+            // Verifica números impossíveis
+            if (/\b(9[5-9]|100)% dos (médicos|cientistas)/gi.test(text)) {
                 context.hasImpossibleNumbers = true;
-                context.suspiciousContext.push(item.desc);
+                context.suspiciousContext.push("Consenso impossível de profissionais");
             }
-        });
 
-        return context;
+            // Verifica fake news conhecidas
+            const fakeNews = ['vacina chip', 'terra plana', '5g mata'];
+            fakeNews.forEach(fake => {
+                if (textLower.includes(fake)) {
+                    context.hasKnownFakeNews = true;
+                    context.suspiciousContext.push(`Fake news conhecida: ${fake}`);
+                }
+            });
+
+            return context;
+        } catch (e) {
+            console.log('Erro na análise contextual:', e);
+            return { hasDeadPersonClaim: false, hasImpossibleNumbers: false, hasKnownFakeNews: false, suspiciousContext: [] };
+        }
     }
 
-    // Análise de coerência do texto
-    analyzeCoherence(text) {
-        const coherence = {
-            hasLogicalFlow: true,
-            hasContradictions: false,
-            hasVagueStatements: false,
-            coherenceScore: 1.0,
-            issues: []
-        };
+    // Análise de coerência simplificada
+    performSimpleCoherenceAnalysis(text) {
+        try {
+            const coherence = {
+                hasContradictions: false,
+                hasVagueStatements: false,
+                coherenceScore: 1.0,
+                issues: []
+            };
 
-        // Verifica contradições temporais
-        const timePatterns = [
-            { pattern: /ontem.*amanhã/gi, issue: "Contradição temporal" },
-            { pattern: /passado.*futuro.*mesmo tempo/gi, issue: "Contradição temporal" },
-            { pattern: /nunca.*sempre.*mesma frase/gi, issue: "Contradição lógica" }
-        ];
-
-        timePatterns.forEach(item => {
-            if (item.pattern.test(text)) {
+            // Verifica contradições básicas
+            if (/ontem.*amanhã/gi.test(text)) {
                 coherence.hasContradictions = true;
-                coherence.issues.push(item.issue);
+                coherence.issues.push("Contradição temporal");
                 coherence.coherenceScore -= 0.2;
             }
-        });
 
-        // Verifica declarações vagas
-        const vaguePatterns = [
-            /\b(alguns dizem|muitos acreditam|há quem diga|fontes não confirmadas)\b/gi,
-            /\b(segundo boatos|ouvi dizer|me contaram|alguém disse)\b/gi
-        ];
-
-        vaguePatterns.forEach(pattern => {
-            if (pattern.test(text)) {
+            // Verifica declarações vagas
+            if (/\b(alguns dizem|ouvi dizer|me contaram)\b/gi.test(text)) {
                 coherence.hasVagueStatements = true;
-                coherence.issues.push("Declarações vagas sem fontes");
+                coherence.issues.push("Declarações vagas");
                 coherence.coherenceScore -= 0.1;
             }
-        });
 
-        coherence.coherenceScore = Math.max(0, coherence.coherenceScore);
-        return coherence;
+            coherence.coherenceScore = Math.max(0, coherence.coherenceScore);
+            return coherence;
+        } catch (e) {
+            console.log('Erro na análise de coerência:', e);
+            return { hasContradictions: false, hasVagueStatements: false, coherenceScore: 1.0, issues: [] };
+        }
     }
 
     analyzeText(text) {
@@ -481,11 +458,11 @@ class NewsAnalyzer {
         analysis.numericalSuspiciousScore = Math.min(numericalSuspiciousScore, 1.0);
         analysis.sentimentScore = Math.min(sentimentScore, 0.8);
 
-        // Análise contextual avançada
-        analysis.contextualAnalysis = this.performContextualAnalysis(text);
+        // Análise contextual simplificada
+        analysis.contextualAnalysis = this.performSimpleContextualAnalysis(text);
 
-        // Análise de coerência
-        analysis.coherenceAnalysis = this.analyzeCoherence(text);
+        // Análise de coerência simplificada
+        analysis.coherenceAnalysis = this.performSimpleCoherenceAnalysis(text);
 
         // Análise de linguagem
         analysis.languageAnalysis = {
