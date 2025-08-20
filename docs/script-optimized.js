@@ -1,4 +1,4 @@
-const API_URL = 'http://127.0.0.1:8000/investigate';
+const API_URL = 'https://projeto-senac-f43t.onrender.com/investigate';
 
 async function investigateNews() {
     console.log('🕵️‍♂️ Iniciando investigação...');
