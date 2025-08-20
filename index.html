@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔍 Investigador de Notícias - IA</title>
+    <link rel="stylesheet" href="style-modern.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔍</text></svg>">
+    <meta name="description" content="Forneça uma pista e a IA investiga o evento, consulta múltiplas fontes e entrega um relatório completo.">
+    <meta name="keywords" content="investigador, notícias, IA, checagem, fatos, apuração">
+</head>
+<body>
+    <div class="floating-shapes">
+        <div class="shape"></div><div class="shape"></div><div class="shape"></div>
+    </div>
+    <div class="particles">
+        <div class="particle"></div><div class="particle"></div><div class="particle"></div><div class="particle"></div><div class="particle"></div><div class="particle"></div><div class="particle"></div><div class="particle"></div>
+    </div>
+    <div class="wave-bg">
+        <div class="wave"></div><div class="wave"></div><div class="wave"></div>
+    </div>
+
+    <div class="container">
+        <div class="theme-toggle">
+            <button id="themeToggle" class="theme-btn" onclick="toggleTheme()">
+                <span class="theme-icon">🌙</span>
+            </button>
+        </div>
+
+        <header class="fade-in-up">
+            <div class="header-content glass-morphism hover-lift card-3d">
+                <div class="card-inner">
+                    <h1 class="gradient-text shine">🔍 Investigador de Notícias</h1>
+                    <p>Dê uma pista. A IA investiga o fato, apura em múltiplas fontes e entrega o relatório.</p>
+                </div>
+            </div>
+        </header>
+
+        <div class="main-content">
+            <div class="input-section glass-morphism hover-lift fade-in-up card-3d">
+                <div class="card-inner">
+                    <h3 class="section-title">🕵️‍♂️ Iniciar Investigação</h3>
+                    
+                    <div class="input-group">
+                        <label for="newsText">Pista Inicial (Texto ou URL)</label>
+                        <textarea 
+                            id="newsText" 
+                            placeholder="Ex: avião cai em Vinhedo"
+                            class="glow-effect"
+                        ></textarea>
+                    </div>
+                    
+                    <button onclick="investigateNews()" class="verify-btn shine pulse">
+                        🚀 Investigar Fato
+                    </button>
+
+                    <div id="loading" class="loading-indicator" style="display: none;">
+                        <div class="spinner"></div>
+                        <p>Investigando... A IA está apurando em múltiplas fontes.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="examples-section glass-morphism hover-lift fade-in-up card-3d">
+                <div class="card-inner">
+                    <h3 class="section-title">🧪 Pistas para Teste</h3>
+                    
+                    <div class="example-category">
+                        <h4>Ocorrências</h4>
+                        <div class="example-buttons">
+                            <button class="example-btn neon-btn" onclick="loadExample('plane_crash')">✈️ Queda de avião em Vinhedo</button>
+                            <button class="example-btn neon-btn" onclick="loadExample('fire')">🔥 Incêndio no Museu Nacional</button>
+                            <button class="example-btn neon-btn" onclick="loadExample('oil_spill')">🛢️ Manchas de óleo no Nordeste</button>
+                        </div>
+                    </div>
+                    
+                    <div class="example-category">
+                        <h4>Boatos e Alegações</h4>
+                        <div class="example-buttons">
+                            <button class="example-btn neon-btn" onclick="loadExample('celebrity_fake_death')">Celebridade X morreu?</button>
+                            <button class="example-btn neon-btn" onclick="loadExample('miracle_cure')">Cura milagrosa para doença Y</button>
+                            <button class="example-btn neon-btn" onclick="loadExample('political_rumor')">Político Z fez declaração polêmica</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="result-container"></div>
+    </div>
+
+    <script src="script-optimized.js"></script>
+    
+    <!-- Script para efeitos visuais -->
+    <script>
+        function toggleTheme() {
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            const themeIcon = document.querySelector('.theme-icon');
+            themeIcon.textContent = newTheme === 'dark' ? '☀️' : '🌙';
+        }
+
+        function loadTheme() {
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+            const themeIcon = document.querySelector('.theme-icon');
+            if (themeIcon) {
+                themeIcon.textContent = savedTheme === 'dark' ? '☀️' : '🌙';
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            loadTheme();
+            const elements = document.querySelectorAll('.fade-in-up');
+            elements.forEach((el, index) => {
+                el.style.animationDelay = `${index * 0.2}s`;
+            });
+        });
+    </script>
+</body>
+</html>
