@@ -144,6 +144,7 @@ header h1 {
     font-weight: 700;
     margin-bottom: 0.5rem;
     letter-spacing: -1px;
+    color: var(--text-primary);
 }
 
 .gradient-text {
