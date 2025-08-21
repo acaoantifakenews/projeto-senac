@@ -2,14 +2,22 @@ const API_URL = 'https://projeto-senac-f43t.onrender.com/investigate';
 
 async function investigateNews() {
     console.log('🕵️‍♂️ Iniciando investigação...');
-    
+    console.log('Botão de investigação: Desabilitando...'); // Added log
+
     const text = document.getElementById('newsText').value.trim();
     const resultContainer = document.getElementById('result-container');
     const loadingDiv = document.getElementById('loading');
-    const investigateBtn = document.querySelector('.verify-btn');
+    const investigateBtn = document.querySelector('.verify-btn'); // This is the main button
+
+    // Disable all example buttons as well
+    const exampleBtns = document.querySelectorAll('.example-btn');
+    exampleBtns.forEach(btn => btn.disabled = true); // Added: Disable example buttons
 
     if (!text) {
         alert('Por favor, insira uma pista para a investigação.');
+        loadingDiv.style.display = 'none'; // Ensure loading is hidden if early exit
+        investigateBtn.disabled = false;    // Ensure button is re-enabled if early exit
+        exampleBtns.forEach(btn => btn.disabled = false); // Added: Re-enable example buttons
         return;
     }
 
@@ -44,8 +52,10 @@ async function investigateNews() {
         console.error('❌ Erro na investigação:', error);
         displayError(error.message);
     } finally {
+        console.log('Botão de investigação: Habilitando...'); // Added log
         loadingDiv.style.display = 'none';
         investigateBtn.disabled = false;
+        exampleBtns.forEach(btn => btn.disabled = false); // Added: Re-enable example buttons
     }
 }
 
