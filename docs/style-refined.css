@@ -62,47 +62,42 @@ body {
     position: relative;
 }
 
-/* --- FUTURISTIC BACKGROUND --- */
-body::before {
-    content: '';
-    position: fixed;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background-image: 
-        linear-gradient(rgba(0, 240, 255, 0.05) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(0, 240, 255, 0.05) 1px, transparent 1px);
-    background-size: 35px 35px;
-    z-index: 0;
-    opacity: 0.5;
-    mask-image: radial-gradient(circle at center, white, transparent 60%);
-}
-
+/* --- FUTURISTIC CIRCUIT BACKGROUND --- */
 .bg-animation::before, .bg-animation::after {
     content: '';
     position: fixed;
-    top: 50%;
-    left: 50%;
-    width: 80vmax;
-    height: 80vmax;
-    border-radius: 50%;
-    background-image: linear-gradient(135deg, var(--futuristic-cyan), #667eea);
-    animation: rotate 30s linear infinite;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    background-repeat: repeat;
     z-index: 0;
-    opacity: 0.1;
-    filter: blur(120px);
+    will-change: background-position;
+}
+
+.bg-animation::before {
+    background-image: 
+        linear-gradient(0deg, transparent 24%, var(--glass-border-dark) 25%, var(--glass-border-dark) 26%, transparent 27%, transparent 74%, var(--glass-border-dark) 75%, var(--glass-border-dark) 76%, transparent 77%, transparent),
+        linear-gradient(90deg, transparent 24%, var(--glass-border-dark) 25%, var(--glass-border-dark) 26%, transparent 27%, transparent 74%, var(--glass-border-dark) 75%, var(--glass-border-dark) 76%, transparent 77%, transparent);
+    background-size: 60px 60px;
+    animation: moveCircuits 8s linear infinite;
+    opacity: 0.5;
 }
 
 .bg-animation::after {
-    width: 60vmax;
-    height: 60vmax;
-    background-image: linear-gradient(135deg, #764ba2, #ffc107);
-    animation-delay: -15s;
-    opacity: 0.15;
+    background-image: radial-gradient(var(--futuristic-cyan) 1px, transparent 2px);
+    background-size: 30px 30px;
+    animation: moveCircuits 4s linear infinite reverse;
+    opacity: 0.3;
 }
 
-@keyframes rotate {
-    0% { transform: translate(-50%, -50%) rotate(0deg) scale(1); }
-    50% { transform: translate(-50%, -50%) rotate(180deg) scale(1.1); }
-    100% { transform: translate(-50%, -50%) rotate(360deg) scale(1); }
+[data-theme="light"] .bg-animation::before, [data-theme="light"] .bg-animation::after {
+    opacity: 0.1;
+}
+
+@keyframes moveCircuits {
+    0% { background-position: 0 0; }
+    100% { background-position: 60px 60px; }
 }
 
 .container {
@@ -190,27 +185,6 @@ textarea:focus {
     outline: none;
     border-color: var(--futuristic-cyan);
     box-shadow: 0 0 10px var(--futuristic-glow);
-}
-
-/* Scanline effect */
-.input-group::after {
-    content: '';
-    position: absolute;
-    top: 100%; left: 0; width: 100%; height: 2px;
-    background: var(--futuristic-cyan);
-    opacity: 0;
-    transition: opacity 0.3s ease;
-    animation: scan 1.5s linear infinite;
-    box-shadow: 0 0 10px var(--futuristic-glow);
-}
-
-textarea:focus + .input-group::after {
-    opacity: 1;
-}
-
-@keyframes scan {
-    0% { top: 30%; }
-    100% { top: 90%; }
 }
 
 .action-btn {
