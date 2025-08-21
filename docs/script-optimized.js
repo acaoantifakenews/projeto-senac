@@ -74,30 +74,38 @@ function displayResult(result) {
     const { verdict, event_summary, key_points, sources } = result;
     const resultContainer = document.getElementById('result-container');
 
-    const keyPointsHtml = key_points.map(point => `<li>${point}</li>`).join('');
+    const keyPointsHtml = key_points.map(point => `
+        <li class="key-point-item">
+            <span class="key-point-icon">💡</span> ${point}
+        </li>`).join('');
+
     const sourcesHtml = sources.map(source => `
         <div class="source-item">
-            <a href="${source.link}" target="_blank" rel="noopener noreferrer">${source.title}</a>
+            <a href="${source.link}" target="_blank" rel="noopener noreferrer">
+                <span class="source-icon">🔗</span> ${source.title}
+            </a>
             <p>${source.snippet}</p>
         </div>`).join('');
 
     resultContainer.innerHTML = `
-        <div class="result-card ${verdict.toLowerCase()}">
+        <div class="result-card ${verdict.toLowerCase()} animate__animated animate__fadeInUp">
             <div class="result-header">
-                <span class="verdict-icon">${getVerdictIcon(verdict)}</span>
-                <h3 class="verdict-title">Veredito: ${verdict}</h3>
+                <div class="verdict-display">
+                    <span class="verdict-icon">${getVerdictIcon(verdict)}</span>
+                    <h3 class="verdict-title">Veredito: ${verdict}</h3>
+                </div>
             </div>
             <div class="result-body">
                 <div class="result-section summary-section">
-                    <h4>📄 Resumo da Apuração</h4>
+                    <h4 class="section-heading">📄 Resumo da Apuração</h4>
                     <p>${event_summary}</p>
                 </div>
                 <div class="result-section points-section">
-                    <h4>🎯 Pontos-Chave</h4>
-                    <ul>${keyPointsHtml}</ul>
+                    <h4 class="section-heading">🎯 Pontos-Chave</h4>
+                    <ul class="key-points-list">${keyPointsHtml}</ul>
                 </div>
                 <div class="result-section sources-section">
-                    <h4>🔗 Fontes Consultadas</h4>
+                    <h4 class="section-heading">🔗 Fontes Consultadas</h4>
                     <div class="sources-list">${sourcesHtml}</div>
                 </div>
             </div>

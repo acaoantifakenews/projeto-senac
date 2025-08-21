@@ -395,35 +395,185 @@ textarea:focus, input[type="url"]:focus {
     box-shadow: 0 8px 25px rgba(0,0,0,0.2);
 }
 
-.result {
+.result-card {
     grid-column: 1 / -1;
     background: var(--glass-bg);
     backdrop-filter: blur(20px);
     border: 1px solid var(--glass-border);
     border-radius: var(--border-radius);
-    padding: 40px;
     box-shadow: var(--shadow-light);
     margin-top: 30px;
-    text-align: center;
-    animation: slideUp 0.5s ease-out;
+    overflow: hidden; /* Ensures border-radius applies to children */
 }
 
-@keyframes slideUp {
+.result-card .result-header {
+    padding: 25px 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+    color: white;
+    text-align: center;
+    background: linear-gradient(135deg, #007bff 0%, #0056b3 100%); /* Default blue header */
+}
+
+.result-card .verdict-display {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.result-card .verdict-icon {
+    font-size: 3rem; /* Larger icon */
+    line-height: 1;
+}
+
+.result-card .verdict-title {
+    font-size: 2.5rem; /* Larger title */
+    font-weight: 800;
+    margin: 0;
+    text-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+/* Verdict specific header backgrounds */
+.result-card.confirmado .result-header {
+    background: linear-gradient(135deg, #28a745 0%, #218838 100%); /* Green for Confirmed */
+}
+.result-card.falso .result-header {
+    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%); /* Red for False */
+}
+.result-card.impreciso .result-header {
+    background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%); /* Orange for Imprecise */
+}
+.result-card.insuficiente .result-header {
+    background: linear-gradient(135deg, #6c757d 0%, #495057 100%); /* Gray for Insufficient */
+}
+
+.result-card .result-body {
+    padding: 40px;
+    text-align: left;
+}
+
+.result-card .result-section {
+    margin-bottom: 30px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.result-card .result-section:last-child {
+    margin-bottom: 0;
+    border-bottom: none;
+}
+
+.result-card .section-heading {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: white;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.result-card .section-heading::before {
+    content: ''; /* Remove default ::before from section-title */
+    width: 0;
+    height: 0;
+}
+
+.result-card .key-points-list {
+    list-style: none;
+    padding: 0;
+}
+
+.result-card .key-point-item {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 12px 15px;
+    border-radius: var(--border-radius-small);
+    margin-bottom: 10px;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    color: rgba(255, 255, 255, 0.9);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.result-card .key-point-item:last-child {
+    margin-bottom: 0;
+}
+
+.result-card .key-point-icon {
+    font-size: 1.2rem;
+    line-height: 1;
+    flex-shrink: 0;
+}
+
+.result-card .sources-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.result-card .source-item {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 15px;
+    border-radius: var(--border-radius-small);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: background 0.3s ease;
+}
+
+.result-card .source-item:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.result-card .source-item a {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 600;
+    color: white; /* Changed to white for better contrast on glassmorphism */
+    text-decoration: none;
+    margin-bottom: 5px;
+    font-size: 1.1rem;
+}
+
+.result-card .source-item a:hover {
+    text-decoration: underline;
+    color: var(--primary-gradient); /* Hover effect with primary gradient */
+}
+
+.result-card .source-item p {
+    font-size: 0.95rem;
+    color: rgba(255, 255, 255, 0.8);
+    line-height: 1.5;
+    margin-top: 5px;
+}
+
+.result-card .source-icon {
+    font-size: 1rem;
+    line-height: 1;
+}
+
+/* Animation for result card */
+.animate__animated {
+    animation-duration: 1s;
+    animation-fill-mode: both;
+}
+
+@keyframes fadeInUp {
     from {
         opacity: 0;
-        transform: translateY(30px);
+        transform: translate3d(0, 100%, 0);
     }
     to {
         opacity: 1;
-        transform: translateY(0);
+        transform: translate3d(0, 0, 0);
     }
 }
 
-.result h3 {
-    font-size: 2.2rem;
-    margin-bottom: 25px;
-    font-weight: 700;
-    color: white;
+.animate__fadeInUp {
+    animation-name: fadeInUp;
 }
 
 .score-circle {
