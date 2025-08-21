@@ -69,7 +69,8 @@ class NewsAnalyzer:
         2.  **Extraia Pontos-Chave:** Identifique de 3 a 5 fatos essenciais e verificáveis sobre o evento (ex: datas, locais, nomes, números).
         3.  **Dê um Veredito:** Compare a "Pista Inicial" com a "Apuração". A pista parece ser verdadeira, falsa ou parcialmente correta? Seja direto. O veredito deve ser uma das seguintes strings: "CONFIRMADO", "IMPRECISO", "FALSO", "INSUFICIENTE".
         4.  **Justifique o Veredito:** Escreva uma frase curta explicando o porquê do seu veredito.
-        5.  **Liste as Fontes:** Retorne as fontes que você usou na apuração.
+        5.  **Garanta a validade do JSON:** Certifique-se de que todas as strings dentro do JSON estejam corretamente escapadas (especialmente aspas duplas internas) e que a estrutura JSON seja estritamente válida.
+        6.  **Liste as Fontes:** Retorne as fontes que você usou na apuração.
 
         Retorne sua análise ESTRITAMENTE no seguinte formato JSON:
         {{
