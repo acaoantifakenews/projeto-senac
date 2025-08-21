@@ -1,3 +1,4 @@
+// Force update
 document.addEventListener('DOMContentLoaded', () => {
     console.log('DOMContentLoaded fired!'); // Diagnostic log
 
