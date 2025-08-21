@@ -1,11 +1,11 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 
 :root {
-    --primary-gradient: linear-gradient(135deg, #007bff 0%, #0056b3 100%); /* Azul mais vibrante */
-    --secondary-gradient: linear-gradient(135deg, #6c757d 0%, #495057 100%); /* Tons de cinza para secundário */
-    --success-gradient: linear-gradient(135deg, #28a745 0%, #218838 100%);
-    --warning-gradient: linear-gradient(135deg, #ffc107 0%, #e0a800 100%);
-    --danger-gradient: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+    --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    --success-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    --warning-gradient: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+    --danger-gradient: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
     --dark-gradient: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
 
     --glass-bg: rgba(255, 255, 255, 0.25);
@@ -69,7 +69,7 @@
 
 body {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-    background: linear-gradient(135deg, #007bff 0%, #0056b3 100%); /* Fundo azul mais consistente */
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
     background-size: 400% 400%;
     animation: gradientShift 15s ease infinite;
     min-height: 100vh;
