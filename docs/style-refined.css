@@ -71,7 +71,7 @@ body {
     top: 0;
     left: 0;
     background-repeat: repeat;
-    z-index: 0;
+    z-index: -1;
     will-change: background-position;
 }
 
