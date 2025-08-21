@@ -8,10 +8,11 @@
     --danger-gradient: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
     --dark-gradient: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
 
-    --glass-bg: rgba(255, 255, 255, 0.25);
-    --glass-border: rgba(255, 255, 255, 0.18);
-    --shadow-light: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
-    --shadow-heavy: 0 15px 35px rgba(0, 0, 0, 0.1);
+    --glass-bg: rgba(255, 255, 255, 0.08); /* Slightly less opaque */
+    --glass-border: rgba(255, 255, 255, 0.15); /* Thinner, lighter border */
+    --shadow-light: 0 10px 40px 0 rgba(31, 38, 135, 0.45); /* More spread out shadow */
+    --shadow-heavy: 0 15px 35px rgba(0, 0, 0, 0.3);
+    --neon-blue: #00f0ff; /* New neon blue color */
 
     --text-primary: #2d3748;
     --text-secondary: #4a5568;
@@ -204,7 +205,10 @@ header h1 {
     -webkit-text-fill-color: transparent;
     background-clip: text;
     margin-bottom: 15px;
-    text-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    text-shadow: 0 0 15px var(--neon-blue), /* Neon glow */
+                 0 0 30px var(--neon-blue),
+                 0 0 45px var(--neon-blue),
+                 0 4px 8px rgba(0,0,0,0.1); /* Original shadow */
 }
 
 header p {
