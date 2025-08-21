@@ -7,17 +7,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const resultContainer = document.getElementById('result-container');
     const loadingDiv = document.getElementById('loading');
     const exampleBtns = document.querySelectorAll('.example-btn');
+    const animatedElements = document.querySelectorAll('.fade-in-up');
 
     const API_URL = 'https://projeto-senac-f43t.onrender.com/investigate';
 
     // --- Theme Management ---
     const applyTheme = (theme) => {
         document.documentElement.setAttribute('data-theme', theme);
-        if (theme === 'dark') {
-            themeIcon.textContent = '☀️';
-        } else {
-            themeIcon.textContent = '🌙';
-        }
+        themeIcon.textContent = theme === 'dark' ? '☀️' : '🌙';
     };
 
     const toggleTheme = () => {
@@ -30,13 +27,11 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- API & Investigation Logic ---
     const investigateNews = async () => {
         const text = newsText.value.trim();
-
         if (!text) {
             alert('Por favor, insira uma pista para a investigação.');
             return;
         }
 
-        // Disable buttons and show loading
         loadingDiv.style.display = 'flex';
         investigateBtn.disabled = true;
         exampleBtns.forEach(btn => btn.disabled = true);
@@ -69,7 +64,6 @@ document.addEventListener('DOMContentLoaded', () => {
             console.error('❌ Erro na investigação:', error);
             displayError(error.message);
         } finally {
-            // Re-enable buttons and hide loading
             loadingDiv.style.display = 'none';
             investigateBtn.disabled = false;
             exampleBtns.forEach(btn => btn.disabled = false);
@@ -172,6 +166,10 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Initial Load ---
     const savedTheme = localStorage.getItem('theme') || 'light';
     applyTheme(savedTheme);
+
+    animatedElements.forEach((el, index) => {
+        el.style.animationDelay = `${index * 0.15}s`;
+    });
 
     console.log('✅ Interface do Investigador de Notícias pronta.');
 });
