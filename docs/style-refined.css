@@ -74,6 +74,7 @@ body {
     z-index: -1;
     pointer-events: none;
     will-change: background-position;
+    z-index: -1; /* Ensure background pseudo-elements are behind other content */
 }
 
 .bg-animation::before {
@@ -195,6 +196,8 @@ textarea:focus {
     cursor: pointer; transition: var(--transition);
     width: 100%; box-shadow: 0 8px 25px rgba(0, 123, 255, 0.2);
     display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+    z-index: 999;
+    position: relative;
 }
 
 .action-btn:hover { 
@@ -209,11 +212,14 @@ textarea:focus {
 /* --- EXAMPLE BUTTONS --- */
 .example-category h4 { margin-bottom: 1rem; color: var(--text-secondary); font-size: 1rem; font-weight: 500; }
 .example-buttons { display: flex; flex-wrap: wrap; gap: 0.75rem; }
+
 .example-btn {
     padding: 0.75rem 1.25rem; border: 1px solid var(--glass-border);
     border-radius: 50px; color: var(--text-primary);
     background: transparent; font-weight: 500;
     cursor: pointer; transition: var(--transition); font-size: 0.9rem;
+    z-index: 999;
+    position: relative;
 }
 .example-btn:hover { background: var(--futuristic-cyan); color: #000; border-color: var(--futuristic-cyan); transform: translateY(-2px); box-shadow: 0 0 10px var(--futuristic-glow); }
 

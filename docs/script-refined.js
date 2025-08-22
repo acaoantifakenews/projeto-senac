@@ -157,32 +157,29 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Event Listeners ---
     if (themeToggle) {
         themeToggle.addEventListener('click', () => {
-            console.log('themeToggle clicked!');
+            console.log('themeToggle clicked! Executando toggleTheme().');
             toggleTheme();
         });
     } else {
         console.error('themeToggle not found!');
     }
 
-    if (investigateBtn) {
-        investigateBtn.addEventListener('click', () => {
-            console.log('investigateBtn clicked!');
-            investigateNews();
-        });
-    } else {
-        console.error('investigateBtn not found!');
-    }
+    // Delegação de eventos para investigateBtn e exampleBtns
+    document.addEventListener('click', (event) => {
+        const target = event.target;
 
-    if (exampleBtns && exampleBtns.length > 0) {
-        exampleBtns.forEach(button => {
-            button.addEventListener('click', () => {
-                console.log('exampleBtn clicked:', button.dataset.example);
-                loadExample(button.dataset.example);
-            });
-        });
-    } else {
-        console.error('No exampleBtns found!');
-    }
+        // Botão de Investigar
+        if (target.matches('#investigateBtn')) {
+            console.log('investigateBtn clicked via delegation! Executando investigateNews().');
+            investigateNews();
+        }
+        // Botões de Exemplo
+        else if (target.matches('.example-btn')) {
+            const exampleType = target.dataset.example;
+            console.log('exampleBtn clicked via delegation:', exampleType, 'Executando loadExample().');
+            loadExample(exampleType);
+        }
+    });
 
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
