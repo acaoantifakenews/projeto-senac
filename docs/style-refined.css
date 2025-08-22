@@ -242,7 +242,7 @@ textarea:focus {
 .key-point-item:last-child { border-bottom: none; }
 .key-point-icon { font-size: 1.2rem; color: var(--futuristic-cyan); }
 .sources-list { display: flex; flex-direction: column; gap: 1rem; }
-.source-item { padding: 1rem; border: 1px solid var(--glass-border); border-radius: calc(var(--border-radius) - 4px); transition: var(--transition); }
+.source-item { padding: 1rem; border: 1px solid var(--glass-border); border-radius: calc(var(--border-radius) - 4px); transition: var(--transition); z-index: 999; position: relative; }
 .source-item:hover { background-color: rgba(0,0,0,0.05); }
 [data-theme="dark"] .source-item:hover { background-color: rgba(0, 240, 255, 0.05); }
 .source-item a { font-weight: 600; color: var(--text-primary); text-decoration: none; margin-bottom: 0.25rem; font-size: 1rem; }
