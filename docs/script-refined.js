@@ -9,13 +9,26 @@ document.addEventListener('DOMContentLoaded', () => {
     const investigateBtn = document.getElementById('investigateBtn');
     console.log('investigateBtn:', investigateBtn);
     const newsText = document.getElementById('newsText');
+    const validationMessageDiv = document.getElementById('validationMessage');
     const resultContainer = document.getElementById('result-container');
+    resultContainer.setAttribute('aria-live', 'polite');
     const loadingDiv = document.getElementById('loading');
     const exampleBtns = document.querySelectorAll('.example-btn');
     console.log('exampleBtns:', exampleBtns);
     const animatedElements = document.querySelectorAll('.fade-in-up');
 
     const API_URL = 'https://projeto-senac-f43t.onrender.com/investigate';
+
+    // --- Validation Message Helpers ---
+    const displayValidationMessage = (message) => {
+        validationMessageDiv.textContent = message;
+        validationMessageDiv.style.display = 'block'; // Or 'flex' depending on your CSS
+    };
+
+    const clearValidationMessage = () => {
+        validationMessageDiv.textContent = '';
+        validationMessageDiv.style.display = 'none';
+    };
 
     // --- Theme Management ---
     const applyTheme = (theme) => {
@@ -32,9 +45,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- API & Investigation Logic (from original script-optimized.js) ---
     const investigateNews = async () => {
+        clearValidationMessage(); // Clear any previous messages
         const text = newsText.value.trim();
         if (!text) {
-            alert('Por favor, insira uma pista para a investigação.');
+            displayValidationMessage('Por favor, insira uma pista para a investigação.');
             return;
         }
 
@@ -77,14 +91,15 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const displayError = (message) => {
+        clearValidationMessage(); // Clear any validation messages
         resultContainer.innerHTML = `
-            <div class="result-card falso glass-morphism">
+            <div class="result-card error glass-morphism">
                 <div class="result-header">
                     <span class="verdict-icon">❌</span>
-                    <h2 class="verdict-title">Erro na Investigação</h2>
+                    <h2 class="verdict-title">Ocorreu um Erro!</h2>
                 </div>
                 <div class="result-body">
-                    <p>Não foi possível completar a apuração.</p>
+                    <p>Não foi possível completar a apuração. Por favor, tente novamente.</p>
                     <p style="font-size: 0.9em; color: var(--text-secondary); margin-top: 1rem;">Detalhe: ${message}</p>
                 </div>
             </div>
@@ -114,20 +129,62 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
                 <div class="result-body">
                     <section class="result-section">
-                        <h3>📄 Resumo da Apuração</h3>
-                        <p>${event_summary}</p>
+                        <div class="collapsible-header" tabindex="0" role="button" aria-expanded="true" aria-controls="summary-content" data-target="summary-content">
+                            <h3>📄 Resumo da Apuração</h3>
+                            <span class="collapse-icon">▼</span>
+                        </div>
+                        <div class="collapsible-content" id="summary-content">
+                            <p>${event_summary}</p>
+                        </div>
                     </section>
                     <section class="result-section">
-                        <h3>✨ Pontos-Chave</h3>
-                        <ul class="key-points-list">${keyPointsHtml}</ul>
+                        <div class="collapsible-header" tabindex="0" role="button" aria-expanded="true" aria-controls="keypoints-content" data-target="keypoints-content">
+                            <h3>✨ Pontos-Chave</h3>
+                            <span class="collapse-icon">▼</span>
+                        </div>
+                        <div class="collapsible-content" id="keypoints-content">
+                            <ul class="key-points-list">${keyPointsHtml}</ul>
+                        </div>
                     </section>
                     <section class="result-section">
-                        <h3>🔗 Fontes Consultadas</h3>
-                        <div class="sources-list">${sourcesHtml}</div>
+                        <div class="collapsible-header" tabindex="0" role="button" aria-expanded="true" aria-controls="sources-content" data-target="sources-content">
+                            <h3>🔗 Fontes Consultadas</h3>
+                            <span class="collapse-icon">▼</span>
+                        </div>
+                        <div class="collapsible-content" id="sources-content">
+                            <div class="sources-list">${sourcesHtml}</div>
+                        </div>
                     </section>
                 </div>
             </div>
         `;
+
+        // Add event listeners for collapsible sections
+        resultContainer.querySelectorAll('.collapsible-header').forEach(header => {
+            header.addEventListener('click', () => {
+                const targetId = header.dataset.target;
+                const content = document.getElementById(targetId);
+                const icon = header.querySelector('.collapse-icon');
+
+                if (content.classList.contains('collapsed')) {
+                    content.classList.remove('collapsed');
+                    icon.textContent = '▼';
+                    header.setAttribute('aria-expanded', 'true');
+                } else {
+                    content.classList.add('collapsed');
+                    icon.textContent = '►';
+                    header.setAttribute('aria-expanded', 'false');
+                }
+            });
+
+            // Handle keyboard events for accessibility
+            header.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' || e.key === ' ') { // Spacebar
+                    e.preventDefault(); // Prevent scrolling when spacebar is pressed
+                    header.click(); // Simulate a click
+                }
+            });
+        });
     };
 
     const getVerdictIcon = (verdict) => {
@@ -162,7 +219,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     } else {
         console.error('themeToggle not found!');
-    }
+    };
 
     // Delegação de eventos para investigateBtn e exampleBtns
     document.addEventListener('click', (event) => {
