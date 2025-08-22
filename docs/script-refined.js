@@ -36,7 +36,49 @@ document.addEventListener('DOMContentLoaded', () => {
         validationMessageDiv.style.display = 'none';
     };
 
-        // --- THEME TOGGLE --- //
+            // --- API CALL --- //
+    const handleInvestigation = async () => {
+        const query = newsText.value.trim();
+        if (!query) {
+            validationMessage.textContent = 'Por favor, insira uma pista para investigação.';
+            validationMessage.style.display = 'block';
+            newsText.focus();
+            return;
+        }
+        validationMessage.style.display = 'none';
+        loading.style.display = 'flex';
+        resultContainer.innerHTML = '';
+
+        try {
+            // Replace with your actual API endpoint
+            const response = await fetch('/api/investigate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ query })
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            displayResults(data);
+
+        } catch (error) {
+            console.error('Error during investigation:', error);
+            displayError('Não foi possível conectar ao serviço de investigação. Por favor, tente novamente mais tarde.');
+        } finally {
+            loading.style.display = 'none';
+        }
+    };
+
+    investigateBtn.addEventListener('click', handleInvestigation);
+    newsText.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            handleInvestigation();
+        }
+    });
     const currentTheme = localStorage.getItem('theme') || 'light';
     document.documentElement.setAttribute('data-theme', currentTheme);
     themeToggle.querySelector('.theme-icon').textContent = currentTheme === 'dark' ? '☀️' : '🌙';
