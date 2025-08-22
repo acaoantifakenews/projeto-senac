@@ -36,7 +36,18 @@ document.addEventListener('DOMContentLoaded', () => {
         validationMessageDiv.style.display = 'none';
     };
 
-    // --- Theme Management ---
+        // --- THEME TOGGLE --- //
+    const currentTheme = localStorage.getItem('theme') || 'light';
+    document.documentElement.setAttribute('data-theme', currentTheme);
+    themeToggle.querySelector('.theme-icon').textContent = currentTheme === 'dark' ? '☀️' : '🌙';
+
+    themeToggle.addEventListener('click', () => {
+        let theme = document.documentElement.getAttribute('data-theme');
+        theme = (theme === 'light') ? 'dark' : 'light';
+        document.documentElement.setAttribute('data-theme', theme);
+        localStorage.setItem('theme', theme);
+        themeToggle.querySelector('.theme-icon').textContent = theme === 'dark' ? '☀️' : '🌙';
+    });
     const applyTheme = (theme) => {
         document.documentElement.setAttribute('data-theme', theme);
         themeIcon.textContent = theme === 'dark' ? '☀️' : '🌙';
