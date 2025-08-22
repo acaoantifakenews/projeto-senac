@@ -7,6 +7,12 @@ document.addEventListener('DOMContentLoaded', () => {
     console.log('themeToggle:', themeToggle);
     const themeIcon = document.querySelector('.theme-icon');
     const investigateBtn = document.getElementById('investigateBtn');
+    const newsText = document.getElementById('newsText');
+    const loading = document.getElementById('loading');
+    const resultContainer = document.getElementById('result-container');
+    const validationMessage = document.getElementById('validationMessage');
+    const themeToggle = document.getElementById('themeToggle');
+    const exampleButtons = document.querySelectorAll('.example-btn');
     console.log('investigateBtn:', investigateBtn);
     const newsText = document.getElementById('newsText');
     const validationMessageDiv = document.getElementById('validationMessage');
