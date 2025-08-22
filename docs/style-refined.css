@@ -95,11 +95,10 @@ body {
 }
 
 .container {
-    max-width: 800px;
-    margin: 0 auto;
-    padding: 2rem 1rem;
-    position: relative;
-    z-index: 2;
+    max-width: 900px;
+    margin: 2rem auto;
+    padding: 2rem;
+    box-sizing: border-box;
 }
 
 /* --- THEME TOGGLE --- */
