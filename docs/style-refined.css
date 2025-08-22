@@ -1,28 +1,28 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
 :root {
-    --primary-color: #007bff;
-    --futuristic-cyan: #00f0ff;
-    --futuristic-glow: rgba(0, 240, 255, 0.5);
-    --primary-gradient: linear-gradient(135deg, #0d6efd 0%, #0056b3 100%);
-    --accent-gradient: linear-gradient(135deg, var(--futuristic-cyan) 0%, #667eea 100%);
+    --primary-color: #ff007f; /* Vibrant Pink */
+    --futuristic-cyan: #00ffff; /* Electric Cyan */
+    --futuristic-glow: rgba(255, 0, 127, 0.6); /* Glow from vibrant pink */
+    --primary-gradient: linear-gradient(135deg, #ff007f 0%, #ff4d94 100%); /* Pink to lighter pink */
+    --accent-gradient: linear-gradient(135deg, #00ffff 0%, #007bff 100%); /* Cyan to blue */
     
-    --dark-bg: #0a0a10;
-    --dark-surface: #1a1a2e;
-    --light-bg: #f4f7f9;
+    --dark-bg: #1a001a; /* Deep purple-black */
+    --dark-surface: #2a002a; /* Slightly lighter purple-black */
+    --light-bg: #f0f8ff; /* Alice Blue */
     --light-surface: #ffffff;
 
-    --glass-bg-light: rgba(255, 255, 255, 0.6);
-    --glass-border-light: rgba(255, 255, 255, 0.9);
-    --glass-bg-dark: rgba(26, 26, 46, 0.7);
-    --glass-border-dark: rgba(0, 240, 255, 0.2);
+    --glass-bg-light: rgba(255, 255, 255, 0.8); /* More opaque light glass */
+    --glass-border-light: rgba(255, 0, 127, 0.3); /* Border from vibrant pink */
+    --glass-bg-dark: rgba(42, 0, 42, 0.7); /* More opaque dark glass */
+    --glass-border-dark: rgba(0, 255, 255, 0.3); /* Border from electric cyan */
     
-    --shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-    --shadow-heavy: 0 20px 45px rgba(0, 0, 0, 0.2);
-    --text-primary-light: #212529;
-    --text-secondary-light: #6c757d;
-    --text-primary-dark: #e0e0e0;
-    --text-secondary-dark: #a0a0b0;
+    --shadow: 0 15px 40px rgba(0, 0, 0, 0.2); /* Stronger shadow */
+    --shadow-heavy: 0 25px 55px rgba(0, 0, 0, 0.3);
+    --text-primary-light: #333333;
+    --text-secondary-light: #666666;
+    --text-primary-dark: #f0f0f0;
+    --text-secondary-dark: #cccccc;
 
     --border-radius: 16px;
     --transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
@@ -62,44 +62,36 @@ body {
     position: relative;
 }
 
-/* --- FUTURISTIC CIRCUIT BACKGROUND --- */
-.bg-animation::before, .bg-animation::after {
-    content: '';
+/* --- DYNAMIC GRADIENT BACKGROUND --- */
+.bg-animation {
     position: fixed;
     width: 100%;
     height: 100%;
     top: 0;
     left: 0;
-    background-repeat: repeat;
     z-index: -1;
-    pointer-events: none;
-    will-change: background-position;
-    z-index: -1; /* Ensure background pseudo-elements are behind other content */
+    background: linear-gradient(45deg, var(--dark-bg), var(--primary-color), var(--dark-surface), var(--futuristic-cyan));
+    background-size: 400% 400%;
+    animation: gradientShift 20s ease infinite;
 }
 
-.bg-animation::before {
-    background-image: 
-        linear-gradient(0deg, transparent 24%, var(--glass-border-dark) 25%, var(--glass-border-dark) 26%, transparent 27%, transparent 74%, var(--glass-border-dark) 75%, var(--glass-border-dark) 76%, transparent 77%, transparent),
-        linear-gradient(90deg, transparent 24%, var(--glass-border-dark) 25%, var(--glass-border-dark) 26%, transparent 27%, transparent 74%, var(--glass-border-dark) 75%, var(--glass-border-dark) 76%, transparent 77%, transparent);
-    background-size: 60px 60px;
-    animation: moveCircuits 8s linear infinite;
-    opacity: 0.5;
+@keyframes gradientShift {
+    0% { background-position: 0% 0%; }
+    25% { background-position: 100% 0%; }
+    50% { background-position: 100% 100%; }
+    75% { background-position: 0% 100%; }
+    100% { background-position: 0% 0%; }
 }
 
-.bg-animation::after {
-    background-image: radial-gradient(var(--futuristic-cyan) 1px, transparent 2px);
-    background-size: 30px 30px;
-    animation: moveCircuits 4s linear infinite reverse;
-    opacity: 0.3;
+/* Remove ::before and ::after for bg-animation as we're using a single element */
+.bg-animation::before, .bg-animation::after {
+    content: none;
 }
 
-[data-theme="light"] .bg-animation::before, [data-theme="light"] .bg-animation::after {
-    opacity: 0.1;
-}
-
-@keyframes moveCircuits {
-    0% { background-position: 0 0; }
-    100% { background-position: 60px 60px; }
+[data-theme="light"] .bg-animation {
+    background: linear-gradient(45deg, var(--light-bg), var(--light-surface), var(--light-bg));
+    background-size: 400% 400%;
+    animation: gradientShift 20s ease infinite;
 }
 
 .container {
