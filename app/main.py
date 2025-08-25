@@ -1,3 +1,4 @@
+
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
@@ -7,34 +8,28 @@ import os
 from dotenv import load_dotenv
 from app.services.news_analyzer import NewsAnalyzer
 
-# Load environment variables
 load_dotenv()
 
-# Initialize FastAPI app
 app = FastAPI(
     title="News Verification API",
     description="API para verificação de notícias falsas",
     version="1.0.0"
 )
 
-# Initialize news analyzer
 analyzer = NewsAnalyzer()
 
-# Configure CORS
 origins = os.getenv("ALLOWED_ORIGINS", "http://localhost:3000").split(",")
-# Adiciona a origem "null" para permitir testes locais com arquivos abertos diretamente no navegador
 if "null" not in origins:
     origins.append("null")
     
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Permite todas as origens para desenvolvimento
+    allow_origins=["*"], 
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Pydantic models
 class NewsInput(BaseModel):
     text: Optional[str] = None
     url: Optional[str] = None
@@ -62,14 +57,10 @@ async def health_check():
 
 @app.post("/investigate", response_model=InvestigationResult)
 async def investigate_news(news: NewsInput):
-    """
-    Endpoint principal para investigar um evento.
-    """
     if not news.text and not news.url:
         raise HTTPException(status_code=400, detail="Texto ou URL da notícia é obrigatório")
 
     try:
-        # O analisador agora faz todo o trabalho de investigação e formatação
         result = analyzer.investigate_and_report(text=news.text, url=news.url)
         return result
 
@@ -78,10 +69,7 @@ async def investigate_news(news: NewsInput):
 
 @app.get("/demo", response_class=HTMLResponse)
 async def demo_page():
-    """
-    Página de demonstração para o Investigador de Notícias.
-    """
-    html_content = """
+    html_content = '''
     <!DOCTYPE html>
     <html lang="pt-BR">
     <head>
@@ -228,8 +216,7 @@ async def demo_page():
         </script>
     </body>
     </html>
-    """
-    return html_content
+    '''
     return html_content
 
 if __name__ == "__main__":

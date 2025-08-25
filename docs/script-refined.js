@@ -1,34 +1,20 @@
-// Force update
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('DOMContentLoaded fired!'); // Diagnostic log
-
-    // --- DOM Elements ---
     const themeToggle = document.getElementById('themeToggle');
-    console.log('themeToggle:', themeToggle);
     const themeIcon = document.querySelector('.theme-icon');
     const investigateBtn = document.getElementById('investigateBtn');
-    const newsText = document.getElementById('newsText');
-    const loading = document.getElementById('loading');
-    const resultContainer = document.getElementById('result-container');
-    const validationMessage = document.getElementById('validationMessage');
-    const themeToggle = document.getElementById('themeToggle');
-    const exampleButtons = document.querySelectorAll('.example-btn');
-    console.log('investigateBtn:', investigateBtn);
     const newsText = document.getElementById('newsText');
     const validationMessageDiv = document.getElementById('validationMessage');
     const resultContainer = document.getElementById('result-container');
     resultContainer.setAttribute('aria-live', 'polite');
     const loadingDiv = document.getElementById('loading');
     const exampleBtns = document.querySelectorAll('.example-btn');
-    console.log('exampleBtns:', exampleBtns);
     const animatedElements = document.querySelectorAll('.fade-in-up');
 
     const API_URL = 'https://projeto-senac-f43t.onrender.com/investigate';
 
-    // --- Validation Message Helpers ---
     const displayValidationMessage = (message) => {
         validationMessageDiv.textContent = message;
-        validationMessageDiv.style.display = 'block'; // Or 'flex' depending on your CSS
+        validationMessageDiv.style.display = 'block';
     };
 
     const clearValidationMessage = () => {
@@ -36,60 +22,6 @@ document.addEventListener('DOMContentLoaded', () => {
         validationMessageDiv.style.display = 'none';
     };
 
-            // --- API CALL --- //
-    const handleInvestigation = async () => {
-        const query = newsText.value.trim();
-        if (!query) {
-            validationMessage.textContent = 'Por favor, insira uma pista para investigação.';
-            validationMessage.style.display = 'block';
-            newsText.focus();
-            return;
-        }
-        validationMessage.style.display = 'none';
-        loading.style.display = 'flex';
-        resultContainer.innerHTML = '';
-
-        try {
-            // Replace with your actual API endpoint
-            const response = await fetch('/api/investigate', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ query })
-            });
-
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-
-            const data = await response.json();
-            displayResults(data);
-
-        } catch (error) {
-            console.error('Error during investigation:', error);
-            displayError('Não foi possível conectar ao serviço de investigação. Por favor, tente novamente mais tarde.');
-        } finally {
-            loading.style.display = 'none';
-        }
-    };
-
-    investigateBtn.addEventListener('click', handleInvestigation);
-    newsText.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter' && !e.shiftKey) {
-            e.preventDefault();
-            handleInvestigation();
-        }
-    });
-    const currentTheme = localStorage.getItem('theme') || 'light';
-    document.documentElement.setAttribute('data-theme', currentTheme);
-    themeToggle.querySelector('.theme-icon').textContent = currentTheme === 'dark' ? '☀️' : '🌙';
-
-    themeToggle.addEventListener('click', () => {
-        let theme = document.documentElement.getAttribute('data-theme');
-        theme = (theme === 'light') ? 'dark' : 'light';
-        document.documentElement.setAttribute('data-theme', theme);
-        localStorage.setItem('theme', theme);
-        themeToggle.querySelector('.theme-icon').textContent = theme === 'dark' ? '☀️' : '🌙';
-    });
     const applyTheme = (theme) => {
         document.documentElement.setAttribute('data-theme', theme);
         themeIcon.textContent = theme === 'dark' ? '☀️' : '🌙';
@@ -102,9 +34,8 @@ document.addEventListener('DOMContentLoaded', () => {
         applyTheme(newTheme);
     };
 
-    // --- API & Investigation Logic (from original script-optimized.js) ---
     const investigateNews = async () => {
-        clearValidationMessage(); // Clear any previous messages
+        clearValidationMessage();
         const text = newsText.value.trim();
         if (!text) {
             displayValidationMessage('Por favor, insira uma pista para a investigação.');
@@ -140,7 +71,7 @@ document.addEventListener('DOMContentLoaded', () => {
             displayResult(result);
 
         } catch (error) {
-            console.error('❌ Erro na investigação:', error);
+            
             displayError(error.message);
         } finally {
             loadingDiv.style.display = 'none';
@@ -150,7 +81,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const displayError = (message) => {
-        clearValidationMessage(); // Clear any validation messages
+        clearValidationMessage();
         resultContainer.innerHTML = `
             <div class="result-card error glass-morphism">
                 <div class="result-header">
@@ -218,7 +149,6 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
         `;
 
-        // Add event listeners for collapsible sections
         resultContainer.querySelectorAll('.collapsible-header').forEach(header => {
             header.addEventListener('click', () => {
                 const targetId = header.dataset.target;
@@ -236,11 +166,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             });
 
-            // Handle keyboard events for accessibility
             header.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter' || e.key === ' ') { // Spacebar
-                    e.preventDefault(); // Prevent scrolling when spacebar is pressed
-                    header.click(); // Simulate a click
+                if (e.key === 'Enter' || e.key === ' ') { 
+                    e.preventDefault(); 
+                    header.click(); 
                 }
             });
         });
@@ -270,41 +199,36 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    // --- Event Listeners ---
     if (themeToggle) {
         themeToggle.addEventListener('click', () => {
-            console.log('themeToggle clicked! Executando toggleTheme().');
+            
             toggleTheme();
         });
     } else {
-        console.error('themeToggle not found!');
+        
     };
 
-    // Delegação de eventos para investigateBtn e exampleBtns
     document.addEventListener('click', (event) => {
         const target = event.target;
 
-        // Botão de Investigar
         if (target.matches('#investigateBtn')) {
-            console.log('investigateBtn clicked via delegation! Executando investigateNews().');
+            
             investigateNews();
         }
-        // Botões de Exemplo
         else if (target.matches('.example-btn')) {
             const exampleType = target.dataset.example;
-            console.log('exampleBtn clicked via delegation:', exampleType, 'Executando loadExample().');
+            
             loadExample(exampleType);
         }
     });
 
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
-            console.log('Ctrl+Enter pressed!');
+            
             investigateNews();
         }
     });
 
-    // --- Initial Load ---
     const savedTheme = localStorage.getItem('theme') || 'light';
     applyTheme(savedTheme);
 
@@ -312,5 +236,5 @@ document.addEventListener('DOMContentLoaded', () => {
         el.style.animationDelay = `${index * 0.15}s`;
     });
 
-    console.log('✅ Interface do Investigador de Notícias pronta.');
+    
 });
