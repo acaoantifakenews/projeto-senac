@@ -22,12 +22,12 @@ class NewsAnalyzer:
             print("⚠️ API Key do Gemini não encontrada. Funções de IA desabilitadas.")
         else:
             genai.configure(api_key=self.gemini_api_key)
-            print("✅ API do Gemini configurada.")
+            print("[OK] API do Gemini configurada.")
 
         if not self.google_api_key or not self.search_engine_id:
             print("⚠️ Credenciais de Busca do Google não encontradas. Checagem de fatos desabilitada.")
         else:
-            print("✅ API de Busca do Google configurada.")
+            print("[OK] API de Busca do Google configurada.")
 
     def _get_ai_model(self):
         safety_settings = [
@@ -36,7 +36,7 @@ class NewsAnalyzer:
             {"category": "HARM_CATEGORY_SEXUALLY_EXPLICIT", "threshold": "BLOCK_MEDIUM_AND_ABOVE"},
             {"category": "HARM_CATEGORY_DANGEROUS_CONTENT", "threshold": "BLOCK_MEDIUM_AND_ABOVE"},
         ]
-        return genai.GenerativeModel('gemini-2.5-flash', safety_settings=safety_settings)
+        return genai.GenerativeModel('gemini-1.5-flash', safety_settings=safety_settings)
 
     def _get_investigative_report(self, lead_text: str, search_results: List[Dict]) -> Dict:
         """
@@ -69,7 +69,8 @@ class NewsAnalyzer:
         2.  **Extraia Pontos-Chave:** Identifique de 3 a 5 fatos essenciais e verificáveis sobre o evento (ex: datas, locais, nomes, números).
         3.  **Dê um Veredito:** Compare a "Pista Inicial" com a "Apuração". A pista parece ser verdadeira, falsa ou parcialmente correta? Seja direto. O veredito deve ser uma das seguintes strings: "CONFIRMADO", "IMPRECISO", "FALSO", "INSUFICIENTE".
         4.  **Justifique o Veredito:** Escreva uma frase curta explicando o porquê do seu veredito.
-        5.  **Liste as Fontes:** Retorne as fontes que você usou na apuração.
+        5.  **Garanta a validade do JSON:** Certifique-se de que todas as strings dentro do JSON estejam corretamente escapadas (especialmente aspas duplas internas) e que a estrutura JSON seja estritamente válida.
+        6.  **Liste as Fontes:** Retorne as fontes que você usou na apuração.
 
         Retorne sua análise ESTRITAMENTE no seguinte formato JSON:
         {{
@@ -79,8 +80,8 @@ class NewsAnalyzer:
                 "<Segundo ponto-chave>",
                 "<Terceiro ponto-chave>"
             ],
-            "is_event_real": <true se o veredito for '"CONFIRMADO"' ou '"IMPRECISO"', false caso contrário>,
-            "verdict": "<Seu veredito: '"CONFIRMADO"', '"IMPRECISO"', '"FALSO"' ou '"INSUFICIENTE"'>",
+            "is_event_real": <true se o veredito for 'CONFIRMADO' ou 'IMPRECISO', false caso contrário>,
+            "verdict": "<Seu veredito: 'CONFIRMADO', 'IMPRECISO', 'FALSO' ou 'INSUFICIENTE'>",
             "sources": [
                 {{
                     "title": "<Título da fonte 1>",
@@ -100,7 +101,7 @@ class NewsAnalyzer:
             report['sources'] = search_results
             return report
         except Exception as e:
-            print(f"❌ Erro na geração do relatório com IA: {e}")
+            print(f"[ERROR] Erro na geração do relatório com IA: {e}")
             return {"error": f"A IA não conseguiu gerar o relatório. Detalhe: {str(e)}"}
 
     def _search_web(self, query: str) -> List[Dict]:
@@ -111,7 +112,7 @@ class NewsAnalyzer:
             result = service.cse().list(q=query, cx=self.search_engine_id, num=5).execute() # Aumentado para 5 resultados
             return [{ "title": item['title'], "link": item['link'], "snippet": item.get('snippet', '') } for item in result.get('items', [])]
         except Exception as e:
-            print(f"❌ Erro na busca web: {e}")
+            print(f"[ERROR] Erro na busca web: {e}")
             return [{"error": f"Falha ao buscar na web. Detalhe: {str(e)}"}]
 
     def _extract_text_from_url(self, url: str) -> Dict:

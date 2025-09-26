@@ -1,0 +1,51 @@
+# Workflow para deploy de conteúdo estático no GitHub Pages
+name: Deploy static content to Pages
+
+on:
+  # Executa em pushes para a branch padrão
+  push:
+    branches: ["main"]
+
+  # Permite executar manualmente na aba Actions
+  workflow_dispatch:
+
+# Define permissões do GITHUB_TOKEN para permitir deploy no Pages
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Permite apenas um deploy simultâneo
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  # Job de deploy
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+      - name: Check if docs folder exists
+        id: check-docs
+        run: |
+          if [ -d "docs" ]; then
+            echo "path=./docs" >> $GITHUB_OUTPUT
+            echo "Usando pasta docs/"
+          else
+            echo "path=." >> $GITHUB_OUTPUT
+            echo "Usando pasta raiz"
+          fi
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ${{ steps.check-docs.outputs.path }}
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

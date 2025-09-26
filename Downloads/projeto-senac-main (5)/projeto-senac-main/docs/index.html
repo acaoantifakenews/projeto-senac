@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔍 Investigador de Notícias - IA</title>
+    <link rel="stylesheet" href="style-refined.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔍</text></svg>">
+    <meta name="description" content="Forneça uma pista e a IA investiga o evento, consulta múltiplas fontes e entrega um relatório completo.">
+    <meta name="keywords" content="investigador, notícias, IA, checagem, fatos, apuração">
+</head>
+<body>
+    <div class="bg-animation"></div>
+    <div class="theme-toggle">
+        <button id="themeToggle" class="theme-btn" aria-label="Mudar tema entre claro e escuro">
+            <span class="theme-icon">🌙</span>
+        </button>
+    </div>
+
+    <div class="container">
+        <header class="fade-in-up">
+            <div class="header-content">
+                <h1 class="gradient-text">🔍 Investigador de Notícias</h1>
+                <p>Dê uma pista. A IA investiga o fato, apura em múltiplas fontes e entrega o relatório.</p>
+            </div>
+        </header>
+
+        <main>
+            <section id="investigation-section" class="glass-morphism hover-lift fade-in-up">
+                <h3 class="section-title">🕵️‍♂️ Iniciar Investigação</h3>
+                <p class="instruction-text">Para iniciar uma investigação, insira um título de notícia, uma breve descrição de um evento, ou a URL de uma notícia existente no campo abaixo.</p>
+                <div class="input-group">
+                    <label for="newsText">Pista Inicial (Título, Descrição ou URL)</label>
+                    <textarea id="newsText" placeholder="Ex: 'Queda de avião em Vinhedo', 'Incêndio no Museu Nacional', ou uma URL de notícia"></textarea>
+                    <div id="validationMessage" class="error-message" style="display: none;"></div>
+                </div>
+                
+                <button id="investigateBtn" class="action-btn">
+                    🚀 Investigar Fato
+                </button>
+
+                <div id="loading" class="loading-indicator" style="display: none;">
+                    <div class="spinner"></div>
+                    <p>Investigando... A IA está apurando em múltiplas fontes.</p>
+                </div>
+            </section>
+
+            
+        </main>
+
+        <div id="result-container"></div>
+    </div>
+
+    <script src="script-refined.js" defer></script>
+</body>
+</html>

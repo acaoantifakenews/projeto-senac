@@ -36,7 +36,7 @@ class NewsAnalyzer:
             {"category": "HARM_CATEGORY_SEXUALLY_EXPLICIT", "threshold": "BLOCK_MEDIUM_AND_ABOVE"},
             {"category": "HARM_CATEGORY_DANGEROUS_CONTENT", "threshold": "BLOCK_MEDIUM_AND_ABOVE"},
         ]
-        return genai.GenerativeModel('gemini-2.5-flash', safety_settings=safety_settings)
+        return genai.GenerativeModel('gemini-1.5-flash', safety_settings=safety_settings)
 
     def _get_investigative_report(self, lead_text: str, search_results: List[Dict]) -> Dict:
         """
@@ -79,8 +79,8 @@ class NewsAnalyzer:
                 "<Segundo ponto-chave>",
                 "<Terceiro ponto-chave>"
             ],
-            "is_event_real": <true se o veredito for '"CONFIRMADO"' ou '"IMPRECISO"', false caso contrário>,
-            "verdict": "<Seu veredito: '"CONFIRMADO"', '"IMPRECISO"', '"FALSO"' ou '"INSUFICIENTE"'>",
+            "is_event_real": <true se o veredito for 'CONFIRMADO' ou 'IMPRECISO', false caso contrário>,
+            "verdict": "<Seu veredito: 'CONFIRMADO', 'IMPRECISO', 'FALSO' ou 'INSUFICIENTE'>",
             "sources": [
                 {{
                     "title": "<Título da fonte 1>",

@@ -79,8 +79,8 @@ class NewsAnalyzer:
                 "<Segundo ponto-chave>",
                 "<Terceiro ponto-chave>"
             ],
-            "is_event_real": <true se o veredito for '"CONFIRMADO"' ou '"IMPRECISO"', false caso contrário>,
-            "verdict": "<Seu veredito: '"CONFIRMADO"', '"IMPRECISO"', '"FALSO"' ou '"INSUFICIENTE"'>",
+            "is_event_real": <true se o veredito for 'CONFIRMADO' ou 'IMPRECISO', false caso contrário>,
+            "verdict": "<Seu veredito: 'CONFIRMADO', 'IMPRECISO', 'FALSO' ou 'INSUFICIENTE'>",
             "sources": [
                 {{
                     "title": "<Título da fonte 1>",
