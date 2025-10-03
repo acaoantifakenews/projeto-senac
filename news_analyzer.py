@@ -47,17 +47,19 @@ class NewsAnalyzer:
 
         model = self._get_ai_model()
         
-        # Converte os resultados da busca para uma string formatada
         research_context = "\n".join([
             f"- Título: {item['title']}\n  Link: {item['link']}\n  Resumo: {item['snippet']}" 
             for item in search_results
         ])
 
+        # Trunca a pista inicial para evitar prompts muito longos
+        truncated_lead = lead_text[:2000] + ('...' if len(lead_text) > 2000 else '')
+
         prompt = f"""
         Você é um jornalista investigativo sênior. Sua tarefa é apurar uma informação inicial (uma "pista") e entregar um relatório conciso e factual.
 
         --- PISTA INICIAL ---
-        "{lead_text}"
+        "{truncated_lead}"
         --- FIM DA PISTA ---
 
         --- APURAÇÃO (Resultados de busca na web) ---
@@ -96,7 +98,6 @@ class NewsAnalyzer:
             cleaned_response = response.text.strip().replace('```json', '').replace('```', '')
             report = json.loads(cleaned_response)
             
-            # Garante que as fontes usadas no relatório sejam as mesmas da busca
             report['sources'] = search_results
             return report
         except Exception as e:
@@ -108,11 +109,11 @@ class NewsAnalyzer:
             return [{"error": "A API de Busca não foi configurada."}]
         try:
             service = build("customsearch", "v1", developerKey=self.google_api_key)
-            result = service.cse().list(q=query, cx=self.search_engine_id, num=5).execute() # Aumentado para 5 resultados
+            result = service.cse().list(q=query, cx=self.search_engine_id, num=5).execute()
             return [{ "title": item['title'], "link": item['link'], "snippet": item.get('snippet', '') } for item in result.get('items', [])]
         except Exception as e:
             print(f"❌ Erro na busca web: {e}")
-            return [{"error": f"Falha ao buscar na web. Detalhe: {str(e)}"}]
+            return [{"error": f"Falha ao buscar na web. Detalhe: {str(e)}"}
 
     def _extract_text_from_url(self, url: str) -> Dict:
         if not url:
@@ -133,9 +134,11 @@ class NewsAnalyzer:
             content_container = next((soup.select_one(s) for s in main_content_selectors if soup.select_one(s)), None)
             
             if content_container:
-                paragraphs = content_container.find_all('p', recursive=False)
+                paragraphs = content_container.find_all('p')
                 content = ' '.join([p.text.strip() for p in paragraphs])
             else:
+                for tag in soup(['header', 'footer', 'nav', 'aside', 'script', 'style']):
+                    tag.decompose()
                 paragraphs = soup.find_all('p')
                 content = ' '.join([p.text.strip() for p in paragraphs])
                 
@@ -145,23 +148,26 @@ class NewsAnalyzer:
 
     def investigate_and_report(self, text: str = None, url: str = None) -> Dict:
         lead_text = text
+        search_query = text
+
         if url and not text:
             url_analysis = self._extract_text_from_url(url)
             if "error" in url_analysis:
-                # Retorna um erro no formato esperado pelo InvestigationResult
                 return {"event_summary": url_analysis["error"], "key_points": [], "is_event_real": False, "verdict": "ERRO", "sources": []}
             lead_text = url_analysis.get("extracted_content", "")
+            search_query = url_analysis.get("title", "")
 
         if not lead_text:
             return {"event_summary": "Nenhuma pista inicial fornecida.", "key_points": [], "is_event_real": False, "verdict": "ERRO", "sources": []}
 
-        # Usa a pista inicial para buscar na web
-        search_results = self._search_web(lead_text)
+        if not search_query:
+            search_query = lead_text[:200]
+
+        search_results = self._search_web(search_query)
         if not search_results or "error" in search_results[0]:
             error_message = search_results[0]['error'] if search_results else "Falha na busca web."
             return {"event_summary": error_message, "key_points": [], "is_event_real": False, "verdict": "ERRO DE BUSCA", "sources": []}
 
-        # Gera o relatório com base na pista e na apuração
         report = self._get_investigative_report(lead_text, search_results)
         if "error" in report:
             return {"event_summary": report["error"], "key_points": [], "is_event_real": False, "verdict": "ERRO DE IA", "sources": []}
